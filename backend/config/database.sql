@@ -1,58 +1,37 @@
-CREATE DATABASE sistema_logistica;
 USE sistema_logistica;
 
-CREATE TABLE usuarios (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    usuario VARCHAR(50) UNIQUE NOT NULL,
-    senha VARCHAR(255) NOT NULL,
-    nome VARCHAR(100) NOT NULL,
-    perfil ENUM('Motorista', 'Assistente', 'Gerente') NOT NULL,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- Alterar tabela de usuários
+ALTER TABLE usuarios 
+DROP COLUMN usuario,
+ADD COLUMN matricula VARCHAR(20) UNIQUE NOT NULL AFTER id,
+MODIFY COLUMN perfil ENUM('Motorista', 'Assistente', 'Gerente') NOT NULL;
 
-CREATE TABLE veiculos (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    tipo ENUM('Caminhão', 'Carreta') NOT NULL,
-    placa VARCHAR(10) UNIQUE NOT NULL,
-    modelo VARCHAR(50) NOT NULL,
-    ano INT NOT NULL,
-    km INT NOT NULL,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- Alterar tabela de veículos
+ALTER TABLE veiculos
+DROP COLUMN placa,
+ADD COLUMN numero_frota VARCHAR(10) UNIQUE NOT NULL AFTER tipo;
 
-CREATE TABLE motoristas (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    nome VARCHAR(100) NOT NULL,
-    cnh VARCHAR(11) UNIQUE NOT NULL,
-    telefone VARCHAR(20) NOT NULL,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- Limpar dados antigos e inserir novos
+TRUNCATE TABLE ctes;
+TRUNCATE TABLE manutencoes;
+TRUNCATE TABLE usuarios;
+TRUNCATE TABLE motoristas;
+TRUNCATE TABLE veiculos;
 
-CREATE TABLE manutencoes (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    veiculo_id INT NOT NULL,
-    data DATE NOT NULL,
-    tipo ENUM('Preventiva', 'Corretiva', 'Preditiva') NOT NULL,
-    km INT NOT NULL,
-    descricao TEXT NOT NULL,
-    gravidade ENUM('Baixa', 'Média', 'Alta', 'Crítica') NOT NULL,
-    status ENUM('Pendente', 'Concluída') DEFAULT 'Pendente',
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (veiculo_id) REFERENCES veiculos(id)
-);
+-- Inserir usuários com matrícula
+INSERT INTO usuarios (matricula, senha, nome, perfil) VALUES
+('1001', '123', 'João Silva', 'Motorista'),
+('2001', '123', 'Ana Costa', 'Assistente'),
+('3001', '123', 'Carlos Oliveira', 'Gerente');
 
-CREATE TABLE ctes (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    numero VARCHAR(50) UNIQUE NOT NULL,
-    motorista_id INT NOT NULL,
-    veiculo_id INT NOT NULL,
-    data DATE NOT NULL,
-    origem VARCHAR(100) NOT NULL,
-    destino VARCHAR(100) NOT NULL,
-    arquivo VARCHAR(255),
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (motorista_id) REFERENCES motoristas(id),
-    FOREIGN KEY (veiculo_id) REFERENCES veiculos(id)
-);
+-- Inserir veículos com número de frota
+INSERT INTO veiculos (tipo, numero_frota, modelo, ano, km) VALUES
+('Caminhão', 'S-1', 'Volvo FH 540', 2020, 145000),
+('Carreta', 'S-2', 'Randon Bitrem', 2019, 98000),
+('Caminhão', 'S-3', 'Scania R450', 2021, 89000);
 
-
+-- Inserir motoristas
+INSERT INTO motoristas (nome, cnh, telefone) VALUES
+('João Silva', '12345678901', '31 99999-0001'),
+('Maria Santos', '98765432109', '31 99999-0002'),
+('Pedro Costa', '11122233344', '31 99999-0003');

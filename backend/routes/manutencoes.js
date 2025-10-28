@@ -6,10 +6,10 @@ const db = require('../config/database');
 router.get('/', async (req, res) => {
     try {
         const [manutencoes] = await db.query(`
-            SELECT m.*, v.placa, v.modelo, v.tipo as veiculo_tipo
+            SELECT m.*, v.numero_frota, v.modelo, v.tipo as veiculo_tipo
             FROM manutencoes m
             JOIN veiculos v ON m.veiculo_id = v.id
-            ORDER BY m.id DESC
+            ORDER BY m.data DESC, m.id DESC
         `);
         res.json(manutencoes);
     } catch (error) {
@@ -18,40 +18,40 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Buscar manutenção por ID
-router.get('/:id', async (req, res) => {
+// Estatísticas de manutenções por tipo
+router.get('/stats/tipos', async (req, res) => {
     try {
-        const [manutencoes] = await db.query(`
-            SELECT m.*, v.placa, v.modelo 
-            FROM manutencoes m
-            JOIN veiculos v ON m.veiculo_id = v.id
-            WHERE m.id = ?
-        `, [req.params.id]);
+        const [stats] = await db.query(`
+            SELECT 
+                tipo,
+                COUNT(*) as quantidade
+            FROM manutencoes
+            GROUP BY tipo
+        `);
         
-        if (manutencoes.length === 0) {
-            return res.status(404).json({ error: 'Manutenção não encontrada' });
-        }
-        res.json(manutencoes[0]);
+        res.json(stats);
     } catch (error) {
-        console.error('Erro ao buscar manutenção:', error);
+        console.error('Erro ao buscar estatísticas por tipo:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
-// Buscar manutenções por veículo
-router.get('/veiculo/:veiculoId', async (req, res) => {
+// Estatísticas dashboard
+router.get('/stats/dashboard', async (req, res) => {
     try {
-        const [manutencoes] = await db.query(`
-            SELECT m.*, v.placa, v.modelo 
-            FROM manutencoes m
-            JOIN veiculos v ON m.veiculo_id = v.id
-            WHERE m.veiculo_id = ?
-            ORDER BY m.data DESC
-        `, [req.params.veiculoId]);
+        const [stats] = await db.query(`
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'Pendente' THEN 1 ELSE 0 END) as pendentes,
+                SUM(CASE WHEN status = 'Concluída' THEN 1 ELSE 0 END) as concluidas,
+                SUM(CASE WHEN gravidade = 'Crítica' THEN 1 ELSE 0 END) as criticas,
+                SUM(CASE WHEN gravidade = 'Alta' THEN 1 ELSE 0 END) as altas
+            FROM manutencoes
+        `);
         
-        res.json(manutencoes);
+        res.json(stats[0]);
     } catch (error) {
-        console.error('Erro ao buscar manutenções do veículo:', error);
+        console.error('Erro ao buscar estatísticas:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -65,7 +65,6 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
         }
         
-        // Verificar se o veículo existe
         const [veiculos] = await db.query('SELECT id FROM veiculos WHERE id = ?', [veiculo_id]);
         if (veiculos.length === 0) {
             return res.status(404).json({ error: 'Veículo não encontrado' });
@@ -93,38 +92,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Atualizar manutenção completa
-router.put('/:id', async (req, res) => {
-    try {
-        const { veiculo_id, data, tipo, km, descricao, gravidade, status } = req.body;
-        
-        const [result] = await db.query(
-            'UPDATE manutencoes SET veiculo_id=?, data=?, tipo=?, km=?, descricao=?, gravidade=?, status=? WHERE id=?',
-            [veiculo_id, data, tipo, km, descricao, gravidade, status, req.params.id]
-        );
-        
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Manutenção não encontrada' });
-        }
-        
-        res.json({ 
-            id: parseInt(req.params.id), 
-            veiculo_id, 
-            data, 
-            tipo, 
-            km, 
-            descricao, 
-            gravidade, 
-            status,
-            message: 'Manutenção atualizada com sucesso!' 
-        });
-    } catch (error) {
-        console.error('Erro ao atualizar manutenção:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Atualizar apenas o status da manutenção
+// Atualizar status da manutenção
 router.patch('/:id/status', async (req, res) => {
     try {
         const { status } = req.body;
@@ -165,26 +133,6 @@ router.delete('/:id', async (req, res) => {
         res.json({ message: 'Manutenção deletada com sucesso' });
     } catch (error) {
         console.error('Erro ao deletar manutenção:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Estatísticas de manutenções
-router.get('/stats/dashboard', async (req, res) => {
-    try {
-        const [stats] = await db.query(`
-            SELECT 
-                COUNT(*) as total,
-                SUM(CASE WHEN status = 'Pendente' THEN 1 ELSE 0 END) as pendentes,
-                SUM(CASE WHEN status = 'Concluída' THEN 1 ELSE 0 END) as concluidas,
-                SUM(CASE WHEN gravidade = 'Crítica' THEN 1 ELSE 0 END) as criticas,
-                SUM(CASE WHEN gravidade = 'Alta' THEN 1 ELSE 0 END) as altas
-            FROM manutencoes
-        `);
-        
-        res.json(stats[0]);
-    } catch (error) {
-        console.error('Erro ao buscar estatísticas:', error);
         res.status(500).json({ error: error.message });
     }
 });

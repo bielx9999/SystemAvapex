@@ -3,18 +3,18 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const db = require('../config/database');
 
-// Login
+// Login por matrícula
 router.post('/login', async (req, res) => {
     try {
-        const { usuario, senha } = req.body;
+        const { matricula, senha } = req.body;
         
         const [users] = await db.query(
-            'SELECT * FROM usuarios WHERE usuario = ?',
-            [usuario]
+            'SELECT * FROM usuarios WHERE matricula = ?',
+            [matricula]
         );
         
         if (users.length === 0) {
-            return res.status(401).json({ error: 'Usuário ou senha incorretos' });
+            return res.status(401).json({ error: 'Matrícula ou senha incorretos' });
         }
         
         const user = users[0];
@@ -28,7 +28,7 @@ router.post('/login', async (req, res) => {
         }
         
         if (!senhaCorreta) {
-            return res.status(401).json({ error: 'Usuário ou senha incorretos' });
+            return res.status(401).json({ error: 'Matrícula ou senha incorretos' });
         }
         
         delete user.senha;
@@ -42,18 +42,18 @@ router.post('/login', async (req, res) => {
 // Registrar novo usuário
 router.post('/register', async (req, res) => {
     try {
-        const { usuario, senha, nome, perfil } = req.body;
+        const { matricula, senha, nome, perfil } = req.body;
         
         const senhaHash = await bcrypt.hash(senha, 10);
         
         const [result] = await db.query(
-            'INSERT INTO usuarios (usuario, senha, nome, perfil) VALUES (?, ?, ?, ?)',
-            [usuario, senhaHash, nome, perfil]
+            'INSERT INTO usuarios (matricula, senha, nome, perfil) VALUES (?, ?, ?, ?)',
+            [matricula, senhaHash, nome, perfil]
         );
         
         res.json({ 
             id: result.insertId, 
-            usuario, 
+            matricula, 
             nome, 
             perfil,
             message: 'Usuário criado com sucesso!' 
@@ -61,19 +61,8 @@ router.post('/register', async (req, res) => {
     } catch (error) {
         console.error('Erro ao criar usuário:', error);
         if (error.code === 'ER_DUP_ENTRY') {
-            return res.status(400).json({ error: 'Usuário já existe' });
+            return res.status(400).json({ error: 'Matrícula já existe' });
         }
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Listar todos os usuários (apenas para admin)
-router.get('/', async (req, res) => {
-    try {
-        const [usuarios] = await db.query('SELECT id, usuario, nome, perfil, criado_em FROM usuarios ORDER BY id DESC');
-        res.json(usuarios);
-    } catch (error) {
-        console.error('Erro ao listar usuários:', error);
         res.status(500).json({ error: error.message });
     }
 });
