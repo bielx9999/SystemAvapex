@@ -300,6 +300,10 @@ const SistemaLogistica = () => {
             <button type="submit" className="button-primary">
               Entrar
             </button>
+            <div className="login-footer">
+              <p className="footer-text">© 2025 Avapex System.</p>
+              <p className="footer-text-two">Todos os direitos reservados.</p>
+            </div>
           </form>
         </div>
       </div>
