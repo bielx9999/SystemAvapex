@@ -13,12 +13,12 @@ const SistemaLogistica = () => {
 
   useEffect(() => {
     setVeiculos([
-      { id: 1, tipo: 'Caminhão', placa: 'ABC-1234', modelo: 'Volvo FH', ano: 2020, km: 145000 },
-      { id: 2, tipo: 'Carreta', placa: 'DEF-5678', modelo: 'Randon', ano: 2019, km: 98000 }
+      { id: 1, tipo: 'Caminhão', Frota: 'S-260', modelo: 'Volvo FH', ano: 2020, km: 145000 },
+      { id: 2, tipo: 'Carreta', Frota: 'S-255', modelo: 'Randon', ano: 2019, km: 98000 }
     ]);
     setMotoristas([
-      { id: 1, nome: 'João Silva', cnh: '12345678901', telefone: '31 99999-0001' },
-      { id: 2, nome: 'Maria Santos', cnh: '98765432109', telefone: '31 99999-0002' }
+      { id: 1, nome: 'João Silva', matricula: 543, cnh: '12345678901', telefone: '31 99999-0001' },
+      { id: 2, nome: 'Ana Costa', matricula: 500, cnh: '98765432109', telefone: '31 99999-0002' }
     ]);
     setManutencoes([
       { id: 1, veiculoId: 1, data: '2025-10-20', tipo: 'Preventiva', km: 145000, descricao: 'Troca de óleo e filtros', gravidade: 'Baixa', status: 'Concluída' },
@@ -30,21 +30,21 @@ const SistemaLogistica = () => {
   }, []);
 
   const usuarios = [
-    { id: 1, usuario: 'motorista', senha: '123', nome: 'João Silva', perfil: 'Motorista' },
-    { id: 2, usuario: 'assistente', senha: '123', nome: 'Ana Costa', perfil: 'Assistente' },
-    { id: 3, usuario: 'gerente', senha: '123', nome: 'Carlos Oliveira', perfil: 'Gerente' }
+    { id: 1, matricula: '543', senha: '123', nome: 'João Silva', perfil: 'Motorista' },
+    { id: 2, matricula: '500', senha: '123', nome: 'Ana Costa', perfil: 'Assistente' },
+    { id: 3, matricula: '100', senha: '123', nome: 'Carlos Oliveira', perfil: 'Gerente' }
   ];
 
   const handleLogin = (e) => {
     e.preventDefault();
-    const usuario = e.target.usuario.value;
+    const matricula = e.target.matricula.value;
     const senha = e.target.senha.value;
-    const user = usuarios.find(u => u.usuario === usuario && u.senha === senha);
+    const user = usuarios.find(u => u.matricula === matricula && u.senha === senha);
     if (user) {
       setCurrentUser(user);
       setActiveTab('dashboard');
     } else {
-      alert('Usuário ou senha incorretos');
+      alert('Matricula ou senha incorretos');
     }
   };
 
@@ -59,9 +59,7 @@ const SistemaLogistica = () => {
       const novoVeiculo = {
         id: veiculos.length + 1,
         tipo: e.target.tipo.value,
-        placa: e.target.placa.value,
-        modelo: e.target.modelo.value,
-        ano: e.target.ano.value,
+        Frota: e.target.Frota.value,
         km: parseInt(e.target.km.value)
       };
       setVeiculos([...veiculos, novoVeiculo]);
@@ -74,12 +72,13 @@ const SistemaLogistica = () => {
           <label className="label">Tipo</label>
           <select name="tipo" required className="input">
             <option value="Caminhão">Caminhão</option>
+            <option value="Truck">Truck</option>
             <option value="Carreta">Carreta</option>
           </select>
         </div>
         <div className="form-group">
-          <label className="label">Placa</label>
-          <input name="placa" required className="input" placeholder="ABC-1234" />
+          <label className="label">Frota</label>
+          <input name="Frota" required className="input" placeholder="S-260" />
         </div>
         <div className="form-group">
           <label className="label">Modelo</label>
@@ -106,6 +105,7 @@ const SistemaLogistica = () => {
       const novoMotorista = {
         id: motoristas.length + 1,
         nome: e.target.nome.value,
+        matricula: e.target.matricula.value,
         cnh: e.target.cnh.value,
         telefone: e.target.telefone.value
       };
@@ -120,12 +120,8 @@ const SistemaLogistica = () => {
           <input name="nome" required className="input" />
         </div>
         <div className="form-group">
-          <label className="label">CNH</label>
-          <input name="cnh" required className="input" maxLength="11" />
-        </div>
-        <div className="form-group">
-          <label className="label">Telefone</label>
-          <input name="telefone" required className="input" placeholder="31 99999-9999" />
+          <label className="label">Matricula</label>
+          <input name="matricula" required className="input" maxLength="9" />
         </div>
         <button type="submit" className="button-primary">
           Cadastrar Motorista
@@ -142,6 +138,7 @@ const SistemaLogistica = () => {
         veiculoId: parseInt(e.target.veiculo.value),
         data: e.target.data.value,
         tipo: e.target.tipo.value,
+        frota: e.target.frota.value,
         km: parseInt(e.target.km.value),
         descricao: e.target.descricao.value,
         gravidade: e.target.gravidade.value,
@@ -219,7 +216,7 @@ const SistemaLogistica = () => {
         </div>
         <div className="form-group">
           <label className="label">Arquivo CT-e (PDF)</label>
-          <input name="arquivo" type="file" accept=".pdf" required className="input" />
+          <input name="arquivo" type="file" accept=".pdf,.png" required className="input" />
         </div>
         <button type="submit" className="button-primary">
           Anexar CT-e
@@ -245,16 +242,16 @@ const SistemaLogistica = () => {
       <div className="login-container">
         <div className="login-box">
           <div className="login-header">
-            <div className="logo-circle">
-              <Truck size={40} color="#000" />
+              <div className="login-logo">
+              <img src="logoblack-removebg-preview.png" alt="logob"/>
             </div>
-            <h1 className="login-title">Sistema de Logística</h1>
-            <p className="login-subtitle">Gestão de Frota e Documentação</p>
+            <h1 className="login-title">AvaSystem</h1>
+            <p className="login-subtitle">Registro Manutenções e Comprovantes</p>
           </div>
           <form onSubmit={handleLogin} className="login-form">
             <div className="form-group">
-              <label className="label">Usuário</label>
-              <input name="usuario" required className="input" placeholder="Digite seu usuário" />
+              <label className="label">Matricula</label>
+              <input name="matricula" required className="input" placeholder="Digite sua matrícula" />
             </div>
             <div className="form-group">
               <label className="label">Senha</label>
@@ -264,12 +261,6 @@ const SistemaLogistica = () => {
               Entrar
             </button>
           </form>
-          <div className="login-info">
-            <p className="info-title">Usuários de teste:</p>
-            <p className="info-text">Motorista: motorista / 123</p>
-            <p className="info-text">Assistente: assistente / 123</p>
-            <p className="info-text">Gerente: gerente / 123</p>
-          </div>
         </div>
       </div>
     );
@@ -281,30 +272,29 @@ const SistemaLogistica = () => {
     return (
       <div className="content">
         <h2 className="page-title">Dashboard</h2>
-        <p className="page-subtitle">{currentUser.perfil}</p>
         
         <div className="stats-grid">
           <div className="stat-card border-yellow">
             <Truck size={32} color="#FFCC29" />
-            <p className="stat-label">Veículos</p>
+            <p className="stat-label">Veículos Cadastrados</p>
             <p className="stat-value">{veiculos.length}</p>
           </div>
           
           <div className="stat-card border-black">
             <Users size={32} color="#000" />
-            <p className="stat-label">Motoristas</p>
+            <p className="stat-label">Motoristas Cadastrados</p>
             <p className="stat-value">{motoristas.length}</p>
           </div>
           
           <div className="stat-card border-red">
-            <AlertTriangle size={32} color="#FF6B6B" />
+            <AlertTriangle size={32} color="#f51010ff" />
             <p className="stat-label">Urgentes</p>
             <p className="stat-value">{manutencoesUrgentes}</p>
           </div>
           
           <div className="stat-card border-gray">
             <FileText size={32} color="#000000ff" />
-            <p className="stat-label">CT-e</p>
+            <p className="stat-label">Comprovantes Anexos</p>
             <p className="stat-value">{ctes.length}</p>
           </div>
         </div>
@@ -323,7 +313,7 @@ const SistemaLogistica = () => {
               return (
                 <div key={m.id} className="list-item">
                   <div className="flex-1">
-                    <p className="list-item-title">{veiculo?.placa} - {m.tipo}</p>
+                    <p className="list-item-title">{veiculo?.frota} - {m.tipo}</p>
                     <p className="list-item-text">{m.descricao}</p>
                   </div>
                   <span className={`badge ${badgeClass}`}>
@@ -343,7 +333,7 @@ const SistemaLogistica = () => {
       <div className="page-header">
         <div>
           <h2 className="page-title">Veículos</h2>
-          <p className="page-subtitle">Gestão da frota</p>
+          <p className="page-subtitle">Incluir veiculo na frota</p>
         </div>
         {(currentUser.perfil === 'Gerente' || currentUser.perfil === 'Assistente') && (
           <button onClick={() => setShowModal('veiculo')} className="button-primary">
@@ -358,12 +348,13 @@ const SistemaLogistica = () => {
           <div key={v.id} className="card border-yellow">
             <div className="card-header">
               <Truck size={24} color="#FFCC29" />
-              <h3 className="card-title">{v.placa}</h3>
+              <h3 className="card-title">{v.frota}</h3>
             </div>
             <div className="card-body">
               <p className="info-row"><span className="info-label">Tipo:</span> {v.tipo}</p>
               <p className="info-row"><span className="info-label">Modelo:</span> {v.modelo}</p>
               <p className="info-row"><span className="info-label">Ano:</span> {v.ano}</p>
+              <p className="info-row"><span className="info-label">Frota:</span> {v.frota}</p>
               <p className="info-row"><span className="info-label">KM:</span> {v.km.toLocaleString()}</p>
             </div>
           </div>
@@ -377,7 +368,7 @@ const SistemaLogistica = () => {
       <div className="page-header">
         <div>
           <h2 className="page-title">Motoristas</h2>
-          <p className="page-subtitle">Equipe cadastrada</p>
+          <p className="page-subtitle">Cadastro de motoristas</p>
         </div>
         {(currentUser.perfil === 'Gerente' || currentUser.perfil === 'Assistente') && (
           <button onClick={() => setShowModal('motorista')} className="button-primary">
@@ -395,7 +386,7 @@ const SistemaLogistica = () => {
               <h3 className="card-title">{m.nome}</h3>
             </div>
             <div className="card-body">
-              <p className="info-row"><span className="info-label">CNH:</span> {m.cnh}</p>
+              <p className="info-row"><span className="info-label">Matrícula:</span> {m.cnh}</p>
               <p className="info-row"><span className="info-label">Telefone:</span> {m.telefone}</p>
             </div>
           </div>
@@ -409,7 +400,7 @@ const SistemaLogistica = () => {
       <div className="page-header">
         <div>
           <h2 className="page-title">Manutenções</h2>
-          <p className="page-subtitle">Histórico e pendências</p>
+          <p className="page-subtitle">Incluir manutenção</p>
         </div>
         <button onClick={() => setShowModal('manutencao')} className="button-primary">
           <Plus size={18} className="mr-2" />
@@ -431,7 +422,7 @@ const SistemaLogistica = () => {
                 <div className="flex-1">
                   <div className="card-header">
                     <Wrench size={20} color="#6B7280" />
-                    <h3 className="card-title">{veiculo?.placa} - {m.tipo}</h3>
+                    <h3 className="card-title">{veiculo?.frota} - {m.tipo}</h3>
                   </div>
                   <div className="card-body">
                     <p className="info-row"><span className="info-label">Data:</span> {new Date(m.data).toLocaleDateString('pt-BR')}</p>
@@ -460,7 +451,7 @@ const SistemaLogistica = () => {
       <div className="page-header">
         <div>
           <h2 className="page-title">CT-e</h2>
-          <p className="page-subtitle">Documentos de carga</p>
+          <p className="page-subtitle">Comprovantes de entrega</p>
         </div>
         <button onClick={() => setShowModal('cte')} className="button-primary">
           <Plus size={18} className="mr-2" />
@@ -495,11 +486,11 @@ const SistemaLogistica = () => {
         <div className="header-content">
           <div className="header-left">
             <div className="header-logo">
-              <img src="sistema-logistica/src/logo.png" alt="Logo Avapex"></img>
+              <img src="logoblack-removebg-preview.png" alt="logob"/>
             </div>
             <div>
               <h1 className="header-title">AvaSystem</h1>
-              <p className="header-subtitle">{currentUser.nome} · {currentUser.perfil}</p>
+              <p className="header-subtitle">{currentUser.nome} </p>
             </div>
           </div>
           <button onClick={handleLogout} className="button-logout">
