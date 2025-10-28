@@ -20,22 +20,22 @@ const SistemaLogistica = () => {
 
   const loadData = () => {
     setVeiculos([
-      { id: 1, tipo: 'Caminhão', numero_frota: 'S-1', modelo: 'Volvo FH 540', ano: 2020, km: 145000 },
-      { id: 2, tipo: 'Carreta', numero_frota: 'S-2', modelo: 'Randon Bitrem', ano: 2019, km: 98000 },
-      { id: 3, tipo: 'Caminhão', numero_frota: 'S-3', modelo: 'Scania R450', ano: 2021, km: 89000 }
+      { id: 1, tipo: 'Caminhão', numero_frota: 'S-260', modelo: 'Actros', ano: 2020, km: 145000 },
+      { id: 2, tipo: 'Truck', numero_frota: 'S-121', modelo: 'Mercedes', ano: 2019, km: 98000 },
+      { id: 3, tipo: 'Caminhão', numero_frota: 'S-279', modelo: 'Mercedes', ano: 2021, km: 89000 }
     ]);
     setMotoristas([
-      { id: 1, nome: 'João Silva', cnh: '12345678901', telefone: '31 99999-0001' },
-      { id: 2, nome: 'Maria Santos', cnh: '98765432109', telefone: '31 99999-0002' }
+      { id: 1, nome: 'Arlindo Antunes', cnh: '12345678901', telefone: '31 99999-0001' },
+      { id: 2, nome: 'Jorge Luiz', cnh: '98765432109', telefone: '31 99999-0002' }
     ]);
     setManutencoes([
-      { id: 1, veiculo_id: 1, numero_frota: 'S-1', data: '2025-10-20', tipo: 'Preventiva', km: 145000, descricao: 'Troca de óleo e filtros', gravidade: 'Baixa', status: 'Concluída' },
-      { id: 2, veiculo_id: 1, numero_frota: 'S-1', data: '2025-10-22', tipo: 'Corretiva', km: 145200, descricao: 'Problema no sistema de freios', gravidade: 'Alta', status: 'Pendente' },
-      { id: 3, veiculo_id: 2, numero_frota: 'S-2', data: '2025-10-23', tipo: 'Preventiva', km: 98100, descricao: 'Revisão completa', gravidade: 'Média', status: 'Pendente' }
+      { id: 1, veiculo_id: 1, numero_frota: 'S-260', data: '2025-10-20', tipo: 'Preventiva', km: 145000, descricao: 'Troca de óleo e filtros', gravidade: 'Baixa', status: 'Concluída' },
+      { id: 2, veiculo_id: 1, numero_frota: 'S-121', data: '2025-10-22', tipo: 'Corretiva', km: 145200, descricao: 'Problema no sistema de freios', gravidade: 'Alta', status: 'Pendente' },
+      { id: 3, veiculo_id: 2, numero_frota: 'S-279', data: '2025-10-23', tipo: 'Preventiva', km: 98100, descricao: 'Revisão completa', gravidade: 'Média', status: 'Pendente' }
     ]);
     setCtes([
-      { id: 1, numero: 'CTE-2025-001', motorista_nome: 'João Silva', data: '2025-10-21', arquivo: 'cte_001.pdf' },
-      { id: 2, numero: 'CTE-2025-002', motorista_nome: 'Maria Santos', data: '2025-10-22', arquivo: 'cte_002.pdf' }
+      { id: 1, numero: 'CTE-2025-001', motorista_nome: 'Arlindo Antunes', data: '2025-10-21', arquivo: 'cte_001.pdf' },
+      { id: 2, numero: 'CTE-2025-002', motorista_nome: 'Jorge Luiz', data: '2025-10-22', arquivo: 'cte_002.pdf' }
     ]);
   };
 
@@ -47,9 +47,9 @@ const SistemaLogistica = () => {
     
     // Usuários de teste
     const usuarios = [
-      { id: 1, matricula: '1001', senha: '123', nome: 'João Silva', perfil: 'Motorista' },
-      { id: 2, matricula: '2001', senha: '123', nome: 'Ana Costa', perfil: 'Assistente' },
-      { id: 3, matricula: '3001', senha: '123', nome: 'Carlos Oliveira', perfil: 'Gerente' }
+      { id: 1, matricula: '1001', senha: '123', nome: 'Arlindo Antunes', perfil: 'Motorista' },
+      { id: 2, matricula: '2001', senha: '123', nome: 'Gabriel', perfil: 'Assistente' },
+      { id: 3, matricula: '3001', senha: '123', nome: 'Rafael', perfil: 'Gerente' }
     ];
 
     const user = usuarios.find(u => u.matricula === matricula && u.senha === senha);
@@ -95,6 +95,7 @@ const SistemaLogistica = () => {
           <select name="tipo" required className="input">
             <option value="Caminhão">Caminhão</option>
             <option value="Carreta">Carreta</option>
+            <option value="Truck">Truck</option>
           </select>
         </div>
         <div className="form-group">
@@ -253,7 +254,7 @@ const SistemaLogistica = () => {
         </div>
         <div className="form-group">
           <label className="label">Arquivo CT-e (PDF)</label>
-          <input name="arquivo" type="file" accept=".pdf" required className="input" />
+          <input name="arquivo" type="file" accept=".pdf,.png,.jpg,.jpeg" required className="input" />
         </div>
         <button type="submit" className="button-primary">
           <FileText size={18} className="mr-2" />
@@ -300,12 +301,6 @@ const SistemaLogistica = () => {
               Entrar
             </button>
           </form>
-          <div className="login-info">
-            <p className="info-title">Usuários de teste:</p>
-            <p className="info-text">Motorista: 1001 / 123</p>
-            <p className="info-text">Assistente: 2001 / 123</p>
-            <p className="info-text">Gerente: 3001 / 123</p>
-          </div>
         </div>
       </div>
     );
@@ -327,7 +322,6 @@ const SistemaLogistica = () => {
       <div className="content">
         <div>
           <h2 className="page-title">Dashboard</h2>
-          <p className="page-subtitle">{currentUser.perfil} - {currentUser.nome}</p>
         </div>
         
         <div className="stats-grid">
@@ -692,11 +686,11 @@ const SistemaLogistica = () => {
         <div className="header-content">
           <div className="header-left">
             <div className="header-logo">
-              <img src='logo.png' alt='logo' />
+              <img src='logoblack-removebg-preview.png' alt='logo' />
             </div>
             <div>
-              <h1 className="header-title">AvaSystem</h1>
-              <p className="header-subtitle">{currentUser.nome} · {currentUser.perfil}</p>
+              <h1 className="header-title">AVAPEX SYSTEM - LOGISTICA</h1>
+              <p className="header-subtitle">{'usuario'} : {currentUser.nome} - {currentUser.matricula}</p>
             </div>
           </div>
           <button onClick={handleLogout} className="button-logout">
