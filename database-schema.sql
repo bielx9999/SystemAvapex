@@ -1,7 +1,3 @@
--- ============================================
--- SISTEMA DE LOGÍSTICA - SCHEMA DO BANCO DE DADOS
--- ============================================
-
 CREATE DATABASE IF NOT EXISTS sistema_logistica CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE sistema_logistica;
 

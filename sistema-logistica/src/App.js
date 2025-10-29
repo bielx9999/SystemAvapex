@@ -111,7 +111,6 @@ const SistemaLogistica = () => {
     setLoading(true);
     setError(null);
 
-    try {
       const usuario = e.target.usuario.value;
       const senha = e.target.senha.value;
 
@@ -128,13 +127,7 @@ const SistemaLogistica = () => {
 
       // Carregar dados
       await loadInitialData();
-
-    } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao fazer login');
-    } finally {
-      setLoading(false);
-    }
-  };
+   }
 
   // Logout
   const handleLogout = () => {
