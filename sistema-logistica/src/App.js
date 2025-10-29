@@ -400,10 +400,9 @@ const SistemaLogistica = () => {
       <div className="login-container">
         <div className="login-box">
           <div className="login-header">
-            <div className="logo-circle">
-              <Truck size={40} color="#000" />
+            <div className="login-logo">
+              <img src= 'logo.png' alt='logowhite'></img>
             </div>
-            <h1 className="login-title">Sistema de Logística</h1>
             <p className="login-subtitle">Gestão de Frota e Documentação</p>
           </div>
           <form onSubmit={handleLogin} className="login-form">
@@ -424,12 +423,6 @@ const SistemaLogistica = () => {
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
-          <div className="login-info">
-            <p className="info-title">Usuários de teste:</p>
-            <p className="info-text">Motorista: motorista / 123</p>
-            <p className="info-text">Assistente: assistente / 123</p>
-            <p className="info-text">Gerente: gerente / 123</p>
-          </div>
         </div>
       </div>
     );
