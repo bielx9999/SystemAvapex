@@ -1,44 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Truck, FileText, Wrench, Users, Plus, LogOut, AlertTriangle, Clock } from 'lucide-react';
-import axios from 'axios';
+import { API, handleAPIError } from './services/api';
+import testConnection from './testConnection';
 import './App.css';
 
-// Configuração do Axios
-const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
-  timeout: 30000, // 30 segundos
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
-
-// Interceptor para adicionar token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Interceptor para tratar erros de resposta
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expirado ou inválido
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/';
-    }
-    return Promise.reject(error);
-  }
-);
+// Executar teste de conexão
+testConnection();
 
 const SistemaLogistica = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -80,51 +47,56 @@ const SistemaLogistica = () => {
   // Carregar veículos
   const loadVehicles = async () => {
     try {
-      const response = await api.get('/vehicles');
-      setVeiculos(response.data.data);
+      const response = await API.vehicles.getAll();
+      setVeiculos(response.data.data || []);
     } catch (err) {
       console.error('Erro ao carregar veículos:', err);
+      setError('Erro ao carregar veículos');
     }
   };
 
   // Carregar motoristas
   const loadDrivers = async () => {
     try {
-      const response = await api.get('/users');
-      const drivers = response.data.data.filter(u => u.perfil === 'Motorista');
+      const response = await API.users.getAll();
+      const drivers = (response.data.data || []).filter(u => u.perfil === 'Motorista');
       setMotoristas(drivers);
     } catch (err) {
       console.error('Erro ao carregar motoristas:', err);
+      setError('Erro ao carregar motoristas');
     }
   };
 
   // Carregar manutenções
   const loadMaintenances = async () => {
     try {
-      const response = await api.get('/maintenances');
-      setManutencoes(response.data.data);
+      const response = await API.maintenances.getAll();
+      setManutencoes(response.data.data || []);
     } catch (err) {
       console.error('Erro ao carregar manutenções:', err);
+      setError('Erro ao carregar manutenções');
     }
   };
 
   // Carregar CT-e
   const loadCtes = async () => {
     try {
-      const response = await api.get('/ctes');
-      setCtes(response.data.data);
+      const response = await API.ctes.getAll();
+      setCtes(response.data.data || []);
     } catch (err) {
       console.error('Erro ao carregar CT-e:', err);
+      setError('Erro ao carregar CT-e');
     }
   };
 
   // Carregar estatísticas do dashboard
   const loadDashboardStats = async () => {
     try {
-      const response = await api.get('/dashboard/stats');
+      const response = await API.dashboard.getStats();
       setDashboardStats(response.data.data);
     } catch (err) {
       console.error('Erro ao carregar estatísticas:', err);
+      // Não mostrar erro para estatísticas, pois não é crítico
     }
   };
 
@@ -138,7 +110,7 @@ const SistemaLogistica = () => {
       const usuario = e.target.usuario.value;
       const senha = e.target.senha.value;
 
-      const response = await api.post('/auth/login', { usuario, senha });
+      const response = await API.auth.login(usuario, senha);
       
       const { user, token } = response.data.data;
 
@@ -153,7 +125,10 @@ const SistemaLogistica = () => {
       await loadInitialData();
 
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao fazer login');
+      console.error('Erro completo:', err);
+      console.error('Response:', err.response);
+      const errorInfo = handleAPIError(err);
+      setError(errorInfo.message || 'Erro ao processar requisição');
     } finally {
       setLoading(false);
     }
@@ -187,13 +162,14 @@ const SistemaLogistica = () => {
           km_atual: parseInt(e.target.km.value)
         };
 
-        await api.post('/vehicles', data);
+        await API.vehicles.create(data);
         await loadVehicles();
         setShowModal(null);
         alert('Veículo cadastrado com sucesso!');
 
       } catch (err) {
-        alert(err.response?.data?.message || 'Erro ao cadastrar veículo');
+        const errorInfo = handleAPIError(err);
+        alert(errorInfo.message);
       } finally {
         setLoading(false);
       }
@@ -249,13 +225,14 @@ const SistemaLogistica = () => {
           telefone: e.target.telefone.value
         };
 
-        await api.post('/auth/register', data);
+        await API.users.create(data);
         await loadDrivers();
         setShowModal(null);
         alert('Motorista cadastrado com sucesso!');
 
       } catch (err) {
-        alert(err.response?.data?.message || 'Erro ao cadastrar motorista');
+        const errorInfo = handleAPIError(err);
+        alert(errorInfo.message);
       } finally {
         setLoading(false);
       }
@@ -306,14 +283,15 @@ const SistemaLogistica = () => {
           gravidade: e.target.gravidade.value
         };
 
-        await api.post('/maintenances', data);
+        await API.maintenances.create(data);
         await loadMaintenances();
         await loadVehicles(); // Atualizar status do veículo
         setShowModal(null);
         alert('Manutenção registrada com sucesso!');
 
       } catch (err) {
-        alert(err.response?.data?.message || 'Erro ao registrar manutenção');
+        const errorInfo = handleAPIError(err);
+        alert(errorInfo.message);
       } finally {
         setLoading(false);
       }
@@ -381,16 +359,15 @@ const SistemaLogistica = () => {
           formData.append('arquivo', arquivo);
         }
 
-        await api.post('/ctes', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        await API.ctes.create(formData);
         
         await loadCtes();
         setShowModal(null);
         alert('CT-e cadastrado com sucesso!');
 
       } catch (err) {
-        alert(err.response?.data?.message || 'Erro ao cadastrar CT-e');
+        const errorInfo = handleAPIError(err);
+        alert(errorInfo.message);
       } finally {
         setLoading(false);
       }

@@ -1,6 +1,28 @@
 {
+  "name": "sistema-logistica-app",
+  "version": "1.0.0",
+  "description": "Sistema completo de gestão logística com backend Node.js e frontend React",
+  "main": "index.js",
+  "scripts": {
+    "setup": "npm run setup:backend && npm run setup:frontend",
+    "setup:backend": "cd backend && npm install",
+    "setup:frontend": "cd sistema-logistica && npm install",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd sistema-logistica && npm start",
+    "start:backend": "cd backend && npm start",
+    "build:frontend": "cd sistema-logistica && npm run build",
+    "test:connection": "node test-connection.js",
+    "init:db": "cd backend && npm run init-rds"
+  },
+  "keywords": ["logistica", "frota", "manutencao", "cte", "nodejs", "react"],
+  "author": "Sistema Logística Team",
+  "license": "MIT",
   "dependencies": {
     "axios": "^1.13.1",
     "lucide-react": "^0.548.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }

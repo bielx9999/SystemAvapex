@@ -12,7 +12,7 @@ const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const vehicleRoutes = require('./routes/vehicle.routes');
 const maintenanceRoutes = require('./routes/maintenance.routes');
-const cteRoutes = require('./routes/cte.routes');
+const cteRoutes = require('./routes/ctes.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 
 // Middleware de erro
@@ -30,8 +30,10 @@ app.use(helmet());
 
 // CORS
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
+  origin: [process.env.FRONTEND_URL || 'http://localhost:3000', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Compressão de respostas

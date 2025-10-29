@@ -2,13 +2,14 @@ import axios from 'axios';
 
 // Configuração base da API
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api',
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+    timeout: 30000,
     headers: {
         'Content-Type': 'application/json'
     }
 });
 
-// Interceptor para adicionar token de autenticação (se implementar JWT futuramente)
+// Interceptor para adicionar token de autenticação
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
@@ -27,19 +28,16 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response) {
-            // Erro de resposta do servidor
             console.error('Erro na resposta:', error.response.data);
             
             if (error.response.status === 401) {
-                // Token inválido ou expirado
                 localStorage.removeItem('token');
+                localStorage.removeItem('user');
                 window.location.href = '/';
             }
         } else if (error.request) {
-            // Erro de requisição (sem resposta do servidor)
             console.error('Erro na requisição:', error.request);
         } else {
-            // Erro na configuração da requisição
             console.error('Erro:', error.message);
         }
         return Promise.reject(error);
@@ -48,102 +46,94 @@ api.interceptors.response.use(
 
 // ===================== AUTENTICAÇÃO =====================
 export const authAPI = {
-    // Login por matrícula
-    login: (matricula, senha) => 
-        api.post('/auth/login', { matricula, senha }),
+    // Login
+    login: (usuario, senha) => 
+        api.post('/auth/login', { usuario, senha }),
     
     // Registrar novo usuário
     register: (dados) => 
         api.post('/auth/register', dados),
     
-    // Listar todos os usuários (apenas para admin)
+    // Listar todos os usuários
     getUsers: () => 
-        api.get('/auth')
+        api.get('/users')
 };
 
 // ===================== VEÍCULOS =====================
-export const veiculosAPI = {
+export const vehiclesAPI = {
     // Listar todos os veículos
     getAll: () => 
-        api.get('/veiculos'),
+        api.get('/vehicles'),
     
     // Buscar veículo por ID
     getById: (id) => 
-        api.get(`/veiculos/${id}`),
+        api.get(`/vehicles/${id}`),
     
     // Criar novo veículo
     create: (dados) => 
-        api.post('/veiculos', dados),
+        api.post('/vehicles', dados),
     
     // Atualizar veículo
     update: (id, dados) => 
-        api.put(`/veiculos/${id}`, dados),
+        api.put(`/vehicles/${id}`, dados),
     
     // Deletar veículo
     delete: (id) => 
-        api.delete(`/veiculos/${id}`)
+        api.delete(`/vehicles/${id}`)
 };
 
-// ===================== MOTORISTAS =====================
-export const motoristasAPI = {
-    // Listar todos os motoristas
+// ===================== USUÁRIOS/MOTORISTAS =====================
+export const usersAPI = {
+    // Listar todos os usuários
     getAll: () => 
-        api.get('/motoristas'),
+        api.get('/users'),
     
-    // Buscar motorista por ID
+    // Buscar usuário por ID
     getById: (id) => 
-        api.get(`/motoristas/${id}`),
+        api.get(`/users/${id}`),
     
-    // Criar novo motorista
+    // Criar novo usuário (via auth/register)
     create: (dados) => 
-        api.post('/motoristas', dados),
+        api.post('/auth/register', dados),
     
-    // Atualizar motorista
+    // Atualizar usuário
     update: (id, dados) => 
-        api.put(`/motoristas/${id}`, dados),
+        api.put(`/users/${id}`, dados),
     
-    // Deletar motorista
+    // Deletar usuário
     delete: (id) => 
-        api.delete(`/motoristas/${id}`)
+        api.delete(`/users/${id}`)
 };
 
 // ===================== MANUTENÇÕES =====================
-export const manutencoesAPI = {
+export const maintenancesAPI = {
     // Listar todas as manutenções
     getAll: () => 
-        api.get('/manutencoes'),
+        api.get('/maintenances'),
     
     // Buscar manutenção por ID
     getById: (id) => 
-        api.get(`/manutencoes/${id}`),
+        api.get(`/maintenances/${id}`),
     
     // Buscar manutenções por veículo
-    getByVeiculo: (veiculoId) => 
-        api.get(`/manutencoes/veiculo/${veiculoId}`),
+    getByVehicle: (vehicleId) => 
+        api.get(`/maintenances/vehicle/${vehicleId}`),
     
     // Criar nova manutenção
     create: (dados) => 
-        api.post('/manutencoes', dados),
+        api.post('/maintenances', dados),
     
     // Atualizar manutenção completa
     update: (id, dados) => 
-        api.put(`/manutencoes/${id}`, dados),
+        api.put(`/maintenances/${id}`, dados),
     
     // Atualizar apenas o status
     updateStatus: (id, status) => 
-        api.patch(`/manutencoes/${id}/status`, { status }),
+        api.patch(`/maintenances/${id}/status`, { status }),
     
     // Deletar manutenção
     delete: (id) => 
-        api.delete(`/manutencoes/${id}`),
-    
-    // Estatísticas para dashboard
-    getStats: () => 
-        api.get('/manutencoes/stats/dashboard'),
-    
-    // Estatísticas por tipo (para gráfico)
-    getStatsByType: () => 
-        api.get('/manutencoes/stats/tipos')
+        api.delete(`/maintenances/${id}`)
 };
 
 // ===================== CT-e =====================
@@ -156,17 +146,13 @@ export const ctesAPI = {
     getById: (id) => 
         api.get(`/ctes/${id}`),
     
-    // Buscar CT-e por motorista
-    getByMotorista: (motoristaId) => 
-        api.get(`/ctes/motorista/${motoristaId}`),
-    
     // Criar novo CT-e com upload de arquivo
     create: (formData) => 
         api.post('/ctes', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         }),
     
-    // Atualizar CT-e (sem arquivo)
+    // Atualizar CT-e
     update: (id, dados) => 
         api.put(`/ctes/${id}`, dados),
     
@@ -178,11 +164,14 @@ export const ctesAPI = {
     download: (id) => 
         api.get(`/ctes/download/${id}`, { 
             responseType: 'blob' 
-        }),
-    
-    // Estatísticas de CT-e
+        })
+};
+
+// ===================== DASHBOARD =====================
+export const dashboardAPI = {
+    // Estatísticas gerais
     getStats: () => 
-        api.get('/ctes/stats/dashboard')
+        api.get('/dashboard/stats')
 };
 
 // ===================== FUNÇÕES AUXILIARES =====================
@@ -231,7 +220,6 @@ export const downloadFile = async (id, filename) => {
     try {
         const response = await ctesAPI.download(id);
         
-        // Criar URL temporária para o arquivo
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
@@ -239,6 +227,7 @@ export const downloadFile = async (id, filename) => {
         document.body.appendChild(link);
         link.click();
         link.remove();
+        window.URL.revokeObjectURL(url);
         
         return { success: true };
     } catch (error) {
@@ -246,5 +235,17 @@ export const downloadFile = async (id, filename) => {
     }
 };
 
-// Exportar a instância do axios para uso customizado
+// Função para verificar saúde da API
+export const checkHealth = () => api.get('/health', { baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000' });
+
+// Exportar APIs organizadas
+export const API = {
+    auth: authAPI,
+    vehicles: vehiclesAPI,
+    users: usersAPI,
+    maintenances: maintenancesAPI,
+    ctes: ctesAPI,
+    dashboard: dashboardAPI
+};
+
 export default api;
