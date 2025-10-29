@@ -5,17 +5,40 @@ import './App.css';
 
 // Configuração do Axios
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api'
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  timeout: 30000, // 30 segundos
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 // Interceptor para adicionar token
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-});
+);
+
+// Interceptor para tratar erros de resposta
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expirado ou inválido
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
+    return Promise.reject(error);
+  }
+);
 
 const SistemaLogistica = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -111,6 +134,7 @@ const SistemaLogistica = () => {
     setLoading(true);
     setError(null);
 
+    try {
       const usuario = e.target.usuario.value;
       const senha = e.target.senha.value;
 
@@ -127,7 +151,13 @@ const SistemaLogistica = () => {
 
       // Carregar dados
       await loadInitialData();
-   }
+
+    } catch (err) {
+      setError(err.response?.data?.message || 'Erro ao fazer login');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Logout
   const handleLogout = () => {
@@ -400,9 +430,10 @@ const SistemaLogistica = () => {
       <div className="login-container">
         <div className="login-box">
           <div className="login-header">
-            <div className="login-logo">
-              <img src= 'logo.png' alt='logowhite'></img>
+            <div className="logo-circle">
+              <Truck size={40} color="#000" />
             </div>
+            <h1 className="login-title">Sistema de Logística</h1>
             <p className="login-subtitle">Gestão de Frota e Documentação</p>
           </div>
           <form onSubmit={handleLogin} className="login-form">
@@ -423,6 +454,12 @@ const SistemaLogistica = () => {
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
+          <div className="login-info">
+            <p className="info-title">Usuários de teste:</p>
+            <p className="info-text">Motorista: motorista / 123</p>
+            <p className="info-text">Assistente: assistente / 123</p>
+            <p className="info-text">Gerente: gerente / 123</p>
+          </div>
         </div>
       </div>
     );
