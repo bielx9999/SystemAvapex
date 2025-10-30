@@ -9,15 +9,15 @@ const generateToken = (id) => {
 
 exports.register = async (req, res, next) => {
   try {
-    const { nome, usuario, senha, perfil, telefone, cnh } = req.body;
-    const userExists = await User.findOne({ where: { usuario } });
+    const { nome, matricula, senha, perfil, telefone } = req.body;
+    const userExists = await User.findOne({ where: { matricula } });
     if (userExists) {
       return res.status(400).json({
         success: false,
-        message: 'Usuário já cadastrado'
+        message: 'Matrícula já cadastrada'
       });
     }
-    const user = await User.create({ nome, usuario, senha, perfil, telefone, cnh });
+    const user = await User.create({ nome, matricula, senha, perfil, telefone });
     const token = generateToken(user.id);
     res.status(201).json({
       success: true,
@@ -32,16 +32,16 @@ exports.register = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
-    const { usuario, senha } = req.body;
-    console.log('🔐 Login:', usuario);
-    if (!usuario || !senha) {
+    const { matricula, senha } = req.body;
+    console.log('🔐 Login:', matricula);
+    if (!matricula || !senha) {
       return res.status(400).json({
         success: false,
-        message: 'Forneça usuário e senha'
+        message: 'Forneça matrícula e senha'
       });
     }
     const user = await User.findOne({ 
-      where: { usuario },
+      where: { matricula },
       attributes: { include: ['senha'] }
     });
     if (!user) {
@@ -65,7 +65,7 @@ exports.login = async (req, res, next) => {
     }
     const token = generateToken(user.id);
     const userData = user.toJSON();
-    console.log('✅ Login OK:', usuario);
+    console.log('✅ Login OK:', matricula);
     res.status(200).json({
       success: true,
       message: 'Login realizado com sucesso',

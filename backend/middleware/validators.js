@@ -16,19 +16,18 @@ exports.validate = (req, res, next) => {
 // Validações para registro de usuário
 exports.registerValidation = [
   body('nome').trim().notEmpty().withMessage('Nome é obrigatório'),
-  body('usuario').trim().notEmpty().withMessage('Usuário é obrigatório')
-    .isLength({ min: 3 }).withMessage('Usuário deve ter no mínimo 3 caracteres'),
+  body('matricula').trim().notEmpty().withMessage('Matrícula é obrigatória')
+    .isLength({ min: 3 }).withMessage('Matrícula deve ter no mínimo 3 caracteres'),
   body('senha').notEmpty().withMessage('Senha é obrigatória')
     .isLength({ min: 3 }).withMessage('Senha deve ter no mínimo 3 caracteres'),
   body('perfil').isIn(['Motorista', 'Assistente', 'Gerente'])
     .withMessage('Perfil inválido'),
-  body('telefone').optional().isMobilePhone('pt-BR').withMessage('Telefone inválido'),
-  body('cnh').optional().isLength({ min: 11, max: 11 }).withMessage('CNH deve ter 11 dígitos')
+  body('telefone').optional().isMobilePhone('pt-BR').withMessage('Telefone inválido')
 ];
 
 // Validações para login
 exports.loginValidation = [
-  body('usuario').trim().notEmpty().withMessage('Usuário é obrigatório'),
+  body('matricula').trim().notEmpty().withMessage('Matrícula é obrigatória'),
   body('senha').notEmpty().withMessage('Senha é obrigatória')
 ];
 
@@ -36,8 +35,9 @@ exports.loginValidation = [
 exports.vehicleValidation = [
   body('tipo').isIn(['Caminhão', 'Carreta', 'Van', 'Utilitário'])
     .withMessage('Tipo de veículo inválido'),
-  body('placa').trim().notEmpty().withMessage('Placa é obrigatória')
-    .matches(/^[A-Z]{3}-\d{4}$/).withMessage('Formato de placa inválido (ABC-1234)'),
+  body('frota').trim().notEmpty().withMessage('Número da frota é obrigatório')
+    .matches(/^S-\d+$/).withMessage('Formato de frota inválido (S-XXX)'),
+  body('placa').trim().notEmpty().withMessage('Placa é obrigatória'),
   body('modelo').trim().notEmpty().withMessage('Modelo é obrigatório'),
   body('ano').isInt({ min: 1900, max: new Date().getFullYear() + 1 })
     .withMessage('Ano inválido'),

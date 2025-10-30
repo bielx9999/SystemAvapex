@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Configuração base da API
 const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001/api',
     timeout: 30000,
     headers: {
         'Content-Type': 'application/json'
@@ -47,8 +47,8 @@ api.interceptors.response.use(
 // ===================== AUTENTICAÇÃO =====================
 export const authAPI = {
     // Login
-    login: (usuario, senha) => 
-        api.post('/auth/login', { usuario, senha }),
+    login: (matricula, senha) => 
+        api.post('/auth/login', { matricula, senha }),
     
     // Registrar novo usuário
     register: (dados) => 
@@ -129,7 +129,7 @@ export const maintenancesAPI = {
     
     // Atualizar apenas o status
     updateStatus: (id, status) => 
-        api.patch(`/maintenances/${id}/status`, { status }),
+        api.put(`/maintenances/${id}/status`, { status }),
     
     // Deletar manutenção
     delete: (id) => 
@@ -162,7 +162,7 @@ export const ctesAPI = {
     
     // Download de arquivo CT-e
     download: (id) => 
-        api.get(`/ctes/download/${id}`, { 
+        api.get(`/ctes/${id}/download`, { 
             responseType: 'blob' 
         })
 };

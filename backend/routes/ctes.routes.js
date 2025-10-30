@@ -12,9 +12,8 @@ const { protect, authorize } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const { cteValidation, validate } = require('../middleware/validators');
 
-router.route('/')
-  .get(protect, getCtes)
-  .post(protect, upload.single('arquivo'), cteValidation, validate, createCte);
+router.get('/', protect, getCtes);
+router.post('/', protect, upload.single('arquivo'), createCte);
 
 router.route('/:id')
   .get(protect, getCte)

@@ -3,11 +3,7 @@ const { Cte, Vehicle, User } = require('../models');
 exports.getCtes = async (req, res, next) => {
   try {
     const ctes = await Cte.findAll({
-      include: [
-        { model: Vehicle, as: 'veiculo', attributes: ['id', 'placa'] },
-        { model: User, as: 'motorista', attributes: ['id', 'nome'] }
-      ],
-      order: [['data_emissao', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
     res.status(200).json({ success: true, count: ctes.length, data: ctes });
   } catch (error) {
@@ -34,22 +30,23 @@ exports.getCte = async (req, res, next) => {
 
 exports.createCte = async (req, res, next) => {
   try {
-    let arquivo_nome = null;
-    let arquivo_path = null;
-    if (req.file) {
-      arquivo_nome = req.file.originalname;
-      arquivo_path = req.file.path;
-    }
-    const cte = await Cte.create({ ...req.body, arquivo_nome, arquivo_path });
-    const data = await Cte.findByPk(cte.id, {
-      include: [
-        { model: Vehicle, as: 'veiculo' },
-        { model: User, as: 'motorista' }
-      ]
+    const cte = await Cte.create({
+      numero: req.body.numero,
+      data_emissao: req.body.data_emissao || new Date(),
+      arquivo_nome: req.file?.originalname || null,
+      arquivo_path: req.file?.path || null
     });
-    res.status(201).json({ success: true, message: 'CT-e cadastrado', data });
+    
+    res.status(201).json({ 
+      success: true, 
+      message: 'CT-e cadastrado', 
+      data: cte 
+    });
   } catch (error) {
-    next(error);
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
