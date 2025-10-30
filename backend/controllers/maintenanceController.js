@@ -3,6 +3,7 @@ const { Maintenance, Vehicle, User } = require('../models');
 exports.getMaintenances = async (req, res, next) => {
   try {
     const maintenances = await Maintenance.findAll({
+      attributes: ['id', 'veiculo_id', 'responsavel_id', 'tipo', 'data_programada', 'km_manutencao', 'descricao', 'gravidade', 'status', 'em_andamento', 'createdAt', 'updatedAt'],
       include: [
         { model: Vehicle, as: 'veiculo', attributes: ['id', 'placa', 'modelo'] },
         { model: User, as: 'responsavel', attributes: ['id', 'nome'] }
@@ -88,7 +89,13 @@ exports.updateStatus = async (req, res, next) => {
     if (!maintenance) {
       return res.status(404).json({ success: false, message: 'Manutenção não encontrada' });
     }
-    await maintenance.update({ status });
+    
+    const updateData = { status };
+    if (status === 'Concluída') {
+      updateData.em_andamento = false;
+    }
+    
+    await maintenance.update(updateData);
     res.status(200).json({ success: true, message: 'Status atualizado', data: maintenance });
   } catch (error) {
     next(error);

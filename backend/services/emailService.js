@@ -63,10 +63,7 @@ const sendMaintenanceEmail = async (manutencao, veiculo, destinatario) => {
               <span class="label">Modelo:</span> 
               <span class="value">${veiculo.modelo} (${veiculo.ano})</span>
             </div>
-            <div class="info-row">
-              <span class="label">Quilometragem Atual:</span> 
-              <span class="value">${veiculo.km_atual?.toLocaleString()} km</span>
-            </div>
+
 
             <h3>Detalhes da Manutenção</h3>
             <div class="info-row">
@@ -83,7 +80,11 @@ const sendMaintenanceEmail = async (manutencao, veiculo, destinatario) => {
             </div>
             <div class="info-row">
               <span class="label">Gravidade:</span> 
-              <span class="priority ${manutencao.gravidade.toLowerCase()}">${manutencao.gravidade}</span>
+              <span class="priority ${manutencao.gravidade?.toLowerCase() || 'baixa'}">${manutencao.gravidade || 'N/A'}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Status:</span> 
+              <span class="value">${manutencao.status || 'Pendente'}</span>
             </div>
 
             <h3>Descrição do Problema</h3>

@@ -33,7 +33,8 @@ const Maintenance = sequelize.define('Maintenance', {
   km_manutencao: DataTypes.INTEGER,
   descricao: DataTypes.TEXT,
   gravidade: DataTypes.STRING,
-  status: { type: DataTypes.STRING, defaultValue: 'Pendente' }
+  status: { type: DataTypes.STRING, defaultValue: 'Pendente' },
+  em_andamento: { type: DataTypes.BOOLEAN, defaultValue: false }
 });
 
 // Modelo de CT-e

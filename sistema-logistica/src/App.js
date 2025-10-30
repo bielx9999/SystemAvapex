@@ -76,7 +76,9 @@ const SistemaLogistica = () => {
   const loadMaintenances = async () => {
     try {
       const response = await API.maintenances.getAll();
-      setManutencoes(response.data.data || []);
+      const manutencoesDados = response.data.data || [];
+      console.log('Manutenções carregadas:', manutencoesDados.map(m => ({ id: m.id, em_andamento: m.em_andamento })));
+      setManutencoes(manutencoesDados);
     } catch (err) {
       console.error('Erro ao carregar manutenções:', err);
       setError('Erro ao carregar manutenções');
@@ -170,7 +172,9 @@ const SistemaLogistica = () => {
         tipo_envio: tipoEnvio,
         contato
       });
+      setHistoricoManutencao([]); // Limpar antes de recarregar
       await loadMaintenanceHistory(manutencaoId);
+      await loadMaintenances(); // Recarregar lista de manutenções
       alert('Manutenção enviada com sucesso!');
     } catch (err) {
       alert('Erro ao enviar manutenção');
@@ -181,6 +185,7 @@ const SistemaLogistica = () => {
   const atualizarStatusEtapa = async (etapaId, status, observacoes) => {
     try {
       await API.maintenanceHistory.updateStatus(etapaId, { status, observacoes });
+      setHistoricoManutencao([]); // Limpar antes de recarregar
       await loadMaintenanceHistory(manutencaoSelecionada.id);
       alert('Status atualizado!');
     } catch (err) {
@@ -191,8 +196,22 @@ const SistemaLogistica = () => {
   // Ver detalhes da manutenção
   const verDetalhesManutencao = async (manutencao) => {
     setManutencaoSelecionada(manutencao);
+    setHistoricoManutencao([]); // Limpar histórico anterior
     await loadMaintenanceHistory(manutencao.id);
     setShowModal('detalhes-manutencao');
+  };
+
+  // Excluir manutenção
+  const excluirManutencao = async (id) => {
+    if (window.confirm('Tem certeza que deseja excluir esta manutenção?')) {
+      try {
+        await API.maintenances.delete(id);
+        await loadMaintenances();
+        alert('Manutenção excluída com sucesso!');
+      } catch (err) {
+        alert('Erro ao excluir manutenção');
+      }
+    }
   };
 
   // Download CT-e
@@ -318,10 +337,10 @@ const SistemaLogistica = () => {
         <div className="form-group">
           <label className="label">Tipo</label>
           <select name="tipo" required className="input" defaultValue={editando.dados?.tipo}>
-            <option value="Caminhão">Caminhão</option>
-            <option value="Carreta">Carreta</option>
-            <option value="Van">Van</option>
-            <option value="Utilitário">Utilitário</option>
+            <option value="TRUCK">TRUCK</option>
+            <option value="CAVALO TRUCADO">CAVALO TRUCADO</option>
+            <option value="CAVALO TOCO">CAVALO TOCO</option>
+            <option value="CARGA SECA - GRADE BAIXA">CARGA SECA - GRADE BAIXA</option>
           </select>
         </div>
         <div className="form-group">
@@ -430,7 +449,8 @@ const SistemaLogistica = () => {
           tipo: e.target.tipo.value,
           km_manutencao: parseInt(e.target.km.value),
           descricao: e.target.descricao.value,
-          gravidade: e.target.gravidade.value
+          gravidade: e.target.gravidade.value,
+          em_andamento: false
         };
 
         await API.maintenances.create(data);
@@ -502,7 +522,7 @@ const SistemaLogistica = () => {
       let contato;
       
       if (tipoEnvio === 'Email') {
-        contato = 'manutencao@empresa.com'; // Email padrão do setor
+        contato = 'thiagomarcell88@gmail.com'; // Email padrão do setor
       } else {
         contato = e.target.contato.value;
       }
@@ -541,7 +561,7 @@ const SistemaLogistica = () => {
         {tipoEnvio === 'Email' && (
           <div style={{padding: '10px', backgroundColor: '#e3f2fd', borderRadius: '8px', marginBottom: '15px'}}>
             <p style={{margin: 0, fontSize: '14px'}}>
-              📧 Será enviado para: <strong>manutencao@empresa.com</strong>
+              📧 Será enviado para: <strong>thiagomarcell88@gmail.com</strong>
             </p>
           </div>
         )}
@@ -556,12 +576,25 @@ const SistemaLogistica = () => {
   const DetalhesManutencao = () => {
     return (
       <div className="form">
-        <div className="card" style={{marginBottom: '20px'}}>
-          <h4>Informações da Manutenção</h4>
-          <p><strong>Veículo:</strong> {manutencaoSelecionada?.veiculo?.placa}</p>
-          <p><strong>Tipo:</strong> {manutencaoSelecionada?.tipo}</p>
-          <p><strong>Descrição:</strong> {manutencaoSelecionada?.descricao}</p>
-          <p><strong>Gravidade:</strong> {manutencaoSelecionada?.gravidade}</p>
+        <div className="card" style={{marginBottom: '20px', backgroundColor: '#f8f9fa', border: '1px solid #dee2e6'}}>
+          <h4 style={{color: '#495057', marginBottom: '15px'}}>Informações da Manutenção</h4>
+          <p style={{color: 'white', fontSize: '14px'}}><strong style={{color: 'white'}}>Veículo:</strong> {manutencaoSelecionada?.veiculo?.placa}</p>
+          <p style={{color: 'white', fontSize: '14px'}}><strong style={{color: 'white'}}>Tipo:</strong> {manutencaoSelecionada?.tipo}</p>
+          <p style={{color: 'white', fontSize: '14px'}}><strong style={{color: 'white'}}>Descrição:</strong> {manutencaoSelecionada?.descricao}</p>
+          <p style={{color: 'white', fontSize: '14px'}}><strong style={{color: 'white'}}>Gravidade:</strong> 
+            <span style={{
+              padding: '4px 8px',
+              borderRadius: '4px',
+              marginLeft: '8px',
+              fontWeight: 'bold',
+              color: 'white',
+              backgroundColor: manutencaoSelecionada?.gravidade === 'Crítica' ? '#dc3545' :
+                              manutencaoSelecionada?.gravidade === 'Alta' ? '#fd7e14' :
+                              manutencaoSelecionada?.gravidade === 'Média' ? '#ffc107' : '#28a745'
+            }}>
+              {manutencaoSelecionada?.gravidade}
+            </span>
+          </p>
         </div>
 
         {['Assistente', 'Gerente'].includes(currentUser.perfil) && historicoManutencao.length === 0 && (
@@ -574,36 +607,53 @@ const SistemaLogistica = () => {
           </button>
         )}
 
-        <h4>Histórico de Etapas</h4>
+        <h4 style={{color: '#495057', marginBottom: '15px'}}>Histórico de Etapas</h4>
         {historicoManutencao.length === 0 ? (
-          <p>Nenhuma etapa registrada ainda.</p>
+          <p style={{color: '#6c757d', fontStyle: 'italic'}}>Nenhuma etapa registrada ainda.</p>
         ) : (
           <div className="list">
             {historicoManutencao.map((etapa, index) => (
-              <div key={etapa.id} className="card" style={{marginBottom: '10px'}}>
-                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                  <div>
-                    <h5>{etapa.etapa}</h5>
-                    <p>{etapa.descricao}</p>
-                    {etapa.observacoes && <p><em>Obs: {etapa.observacoes}</em></p>}
-                    <small>Responsável: {etapa.responsavel?.nome}</small>
-                  </div>
-                  <div style={{textAlign: 'right'}}>
-                    <span className={`badge ${
-                      etapa.status === 'Concluída' ? 'badge-completed' : 'badge-pending'
-                    }`}>
-                      {etapa.status}
-                    </span>
-                    {['Assistente', 'Gerente'].includes(currentUser.perfil) && etapa.status === 'Pendente' && (
-                      <button 
-                        onClick={() => atualizarStatusEtapa(etapa.id, 'Concluída', '')}
-                        className="button-primary" 
-                        style={{fontSize: '12px', padding: '4px 8px', marginTop: '5px'}}
-                      >
-                        Concluir
-                      </button>
-                    )}
-                  </div>
+              <div key={etapa.id} style={{
+                padding: '12px',
+                marginBottom: '8px',
+                backgroundColor: etapa.status === 'Concluída' ? '#155724' : '#856404',
+                border: `2px solid ${etapa.status === 'Concluída' ? '#28a745' : '#ffc107'}`,
+                borderRadius: '6px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div style={{flex: 1}}>
+                  <h6 style={{color: 'white', margin: '0 0 4px 0', fontSize: '14px', fontWeight: 'bold'}}>{etapa.etapa}</h6>
+                  <p style={{color: 'white', margin: 0, fontSize: '12px'}}>{etapa.descricao}</p>
+                </div>
+                <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <span style={{
+                    padding: '4px 8px',
+                    borderRadius: '12px',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    color: 'white',
+                    backgroundColor: etapa.status === 'Concluída' ? '#28a745' : '#ffc107'
+                  }}>
+                    {etapa.status === 'Concluída' ? '✓' : '⏳'}
+                  </span>
+                  {['Assistente', 'Gerente'].includes(currentUser.perfil) && etapa.status === 'Pendente' && (
+                    <button 
+                      onClick={() => atualizarStatusEtapa(etapa.id, 'Concluída', '')}
+                      style={{
+                        fontSize: '10px', 
+                        padding: '4px 8px', 
+                        backgroundColor: '#28a745',
+                        border: 'none',
+                        borderRadius: '4px',
+                        color: 'white',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Concluir
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -904,7 +954,15 @@ const SistemaLogistica = () => {
 
   const Manutencoes = () => {
     const filtrarManutencoes = (status) => {
-      let dados = manutencoes.filter(m => status === 'pendentes' ? m.status !== 'Concluída' : m.status === 'Concluída');
+      let dados;
+      
+      if (status === 'pendentes') {
+        dados = manutencoes.filter(m => m.status !== 'Concluída' && !m.em_andamento);
+      } else if (status === 'andamento') {
+        dados = manutencoes.filter(m => m.status !== 'Concluída' && m.em_andamento);
+      } else {
+        dados = manutencoes.filter(m => m.status === 'Concluída');
+      }
       
       if (filtros.dataInicio || filtros.dataFim || filtros.pesquisa) {
         dados = dados.filter(item => {
@@ -944,6 +1002,12 @@ const SistemaLogistica = () => {
               className={subTab.manutencoes === 'pendentes' ? 'nav-button-active' : 'nav-button'}
             >
               Pendentes
+            </button>
+            <button 
+              onClick={() => setSubTab({...subTab, manutencoes: 'andamento'})} 
+              className={subTab.manutencoes === 'andamento' ? 'nav-button-active' : 'nav-button'}
+            >
+              Em Andamento
             </button>
             <button 
               onClick={() => setSubTab({...subTab, manutencoes: 'concluidas'})} 
@@ -996,38 +1060,50 @@ const SistemaLogistica = () => {
             
             return (
               <div key={m.id} className="card">
-                <div className="flex justify-between">
-                  <div className="flex-1">
-                    <div className="card-header">
-                      <Wrench size={20} color={m.status === 'Concluída' ? "#22C55E" : "#6B7280"} />
-                      <h3 className="card-title">{m.veiculo?.placa} - {m.tipo}</h3>
-                    </div>
-                    <div className="card-body">
-                      <p className="info-row"><span className="info-label">Data:</span> {new Date(m.data_programada).toLocaleDateString('pt-BR')}</p>
-                      <p className="info-row"><span className="info-label">KM:</span> {m.km_manutencao?.toLocaleString()}</p>
-                      <p className="info-row mt-2"><span className="info-label">Descrição:</span> {m.descricao}</p>
-                    </div>
-                  </div>
-                  <div className="flex" style={{flexDirection: 'column', gap: '8px', alignItems: 'flex-end'}}>
-                    <span className={`badge ${gravidadeClass}`}>{m.gravidade}</span>
-                    <span className={`badge ${statusClass}`}>{m.status}</span>
+                {/* Badges no topo */}
+                <div style={{display: 'flex', gap: '10px', marginBottom: '15px'}}>
+                  <span className={`badge ${gravidadeClass}`}>{m.gravidade}</span>
+                  <span className={`badge ${statusClass}`}>{m.status}</span>
+                </div>
+                
+                {/* Conteúdo principal */}
+                <div className="card-header">
+                  <Wrench size={20} color={m.status === 'Concluída' ? "#22C55E" : "#6B7280"} />
+                  <h3 className="card-title">{m.veiculo?.placa} - {m.tipo}</h3>
+                </div>
+                <div className="card-body">
+                  <p className="info-row"><span className="info-label">Data:</span> {new Date(m.data_programada).toLocaleDateString('pt-BR')}</p>
+                  <p className="info-row"><span className="info-label">KM:</span> {m.km_manutencao?.toLocaleString()}</p>
+                  <p className="info-row mt-2"><span className="info-label">Descrição:</span> {m.descricao}</p>
+                </div>
+                
+                {/* Botões na parte inferior */}
+                <div style={{display: 'flex', gap: '8px', marginTop: '15px', justifyContent: 'flex-end'}}>
+                  {['Assistente', 'Gerente'].includes(currentUser.perfil) && (
                     <button 
-                      onClick={() => verDetalhesManutencao(m)} 
+                      onClick={() => excluirManutencao(m.id)} 
                       className="button-primary" 
-                      style={{fontSize: '12px', padding: '4px 8px', backgroundColor: '#3B82F6'}}
+                      style={{fontSize: '12px', padding: '4px 8px', backgroundColor: '#EF4444'}}
                     >
-                      Detalhes
+                      Excluir
                     </button>
-                    {['Assistente', 'Gerente'].includes(currentUser.perfil) && m.status !== 'Concluída' && (
-                      <button 
-                        onClick={() => concluirManutencao(m.id)} 
-                        className="button-primary" 
-                        style={{fontSize: '12px', padding: '4px 8px', marginLeft: '5px'}}
-                      >
-                        Concluir
-                      </button>
-                    )}
-                  </div>
+                  )}
+                  <button 
+                    onClick={() => verDetalhesManutencao(m)} 
+                    className="button-primary" 
+                    style={{fontSize: '12px', padding: '4px 8px', backgroundColor: '#3B82F6'}}
+                  >
+                    Detalhes
+                  </button>
+                  {['Assistente', 'Gerente'].includes(currentUser.perfil) && m.status !== 'Concluída' && (
+                    <button 
+                      onClick={() => concluirManutencao(m.id)} 
+                      className="button-primary" 
+                      style={{fontSize: '12px', padding: '4px 8px'}}
+                    >
+                      Concluir
+                    </button>
+                  )}
                 </div>
               </div>
             );

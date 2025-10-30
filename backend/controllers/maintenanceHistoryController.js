@@ -125,6 +125,12 @@ const sendToMaintenance = async (req, res) => {
       }
     }
 
+    // Marcar manutenção como em andamento
+    await Maintenance.update(
+      { em_andamento: true },
+      { where: { id: manutencaoId } }
+    );
+
     // Criar primeira etapa como concluída
     await MaintenanceHistory.create({
       manutencao_id: manutencaoId,
