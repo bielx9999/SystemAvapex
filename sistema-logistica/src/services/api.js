@@ -174,6 +174,25 @@ export const dashboardAPI = {
         api.get('/dashboard/stats')
 };
 
+// ===================== HISTÓRICO DE MANUTENÇÕES =====================
+export const maintenanceHistoryAPI = {
+    // Listar histórico de uma manutenção
+    getHistory: (manutencaoId) => 
+        api.get(`/maintenance-history/${manutencaoId}`),
+    
+    // Criar etapa no histórico
+    create: (dados) => 
+        api.post('/maintenance-history', dados),
+    
+    // Atualizar status de uma etapa
+    updateStatus: (id, dados) => 
+        api.put(`/maintenance-history/${id}/status`, dados),
+    
+    // Enviar para manutenção
+    sendToMaintenance: (dados) => 
+        api.post('/maintenance-history/send-maintenance', dados)
+};
+
 // ===================== FUNÇÕES AUXILIARES =====================
 
 // Função para tratar erros de forma padronizada
@@ -244,6 +263,7 @@ export const API = {
     vehicles: vehiclesAPI,
     users: usersAPI,
     maintenances: maintenancesAPI,
+    maintenanceHistory: maintenanceHistoryAPI,
     ctes: ctesAPI,
     dashboard: dashboardAPI
 };

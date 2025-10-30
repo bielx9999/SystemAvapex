@@ -12,6 +12,7 @@ const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const vehicleRoutes = require('./routes/vehicle.routes');
 const maintenanceRoutes = require('./routes/maintenance.routes');
+const maintenanceHistoryRoutes = require('./routes/maintenanceHistory');
 const cteRoutes = require('./routes/ctes.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 
@@ -19,7 +20,7 @@ const dashboardRoutes = require('./routes/dashboard.routes');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3002;
 
 // ============================================
 // MIDDLEWARES GLOBAIS
@@ -72,6 +73,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/maintenances', maintenanceRoutes);
+app.use('/api/maintenance-history', maintenanceHistoryRoutes);
 app.use('/api/ctes', cteRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 

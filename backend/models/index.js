@@ -47,10 +47,25 @@ const Cte = sequelize.define('Cte', {
   status: { type: DataTypes.STRING, defaultValue: 'Ativo' }
 });
 
+// Modelo de Histórico de Manutenção
+const MaintenanceHistory = sequelize.define('MaintenanceHistory', {
+  manutencao_id: DataTypes.INTEGER,
+  etapa: DataTypes.STRING,
+  descricao: DataTypes.TEXT,
+  status: { type: DataTypes.STRING, defaultValue: 'Pendente' },
+  data_inicio: DataTypes.DATE,
+  data_conclusao: DataTypes.DATE,
+  responsavel_id: DataTypes.INTEGER,
+  observacoes: DataTypes.TEXT
+});
+
 // Relacionamentos
 Vehicle.hasMany(Maintenance, { foreignKey: 'veiculo_id', as: 'manutencoes' });
 Maintenance.belongsTo(Vehicle, { foreignKey: 'veiculo_id', as: 'veiculo' });
 Maintenance.belongsTo(User, { foreignKey: 'responsavel_id', as: 'responsavel' });
+Maintenance.hasMany(MaintenanceHistory, { foreignKey: 'manutencao_id', as: 'historico' });
+MaintenanceHistory.belongsTo(Maintenance, { foreignKey: 'manutencao_id', as: 'manutencao' });
+MaintenanceHistory.belongsTo(User, { foreignKey: 'responsavel_id', as: 'responsavel' });
 Cte.belongsTo(Vehicle, { foreignKey: 'veiculo_id', as: 'veiculo' });
 Cte.belongsTo(User, { foreignKey: 'motorista_id', as: 'motorista' });
 
@@ -64,4 +79,4 @@ User.prototype.comparePassword = async function (senhaDigitada) {
   return bcrypt.compare(senhaDigitada, this.senha);
 };
 
-module.exports = { sequelize, User, Vehicle, Maintenance, Cte };
+module.exports = { sequelize, User, Vehicle, Maintenance, Cte, MaintenanceHistory };

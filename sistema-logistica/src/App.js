@@ -20,6 +20,9 @@ const SistemaLogistica = () => {
   const [error, setError] = useState(null);
   const [subTab, setSubTab] = useState({ manutencoes: 'pendentes', ctes: 'ativos' });
   const [filtros, setFiltros] = useState({ dataInicio: '', dataFim: '', pesquisa: '' });
+  const [editando, setEditando] = useState({ tipo: null, id: null, dados: null });
+  const [historicoManutencao, setHistoricoManutencao] = useState([]);
+  const [manutencaoSelecionada, setManutencaoSelecionada] = useState(null);
 
   // Carregar dados ao fazer login
   useEffect(() => {
@@ -149,6 +152,49 @@ const SistemaLogistica = () => {
     }
   };
 
+  // Carregar histórico de manutenção
+  const loadMaintenanceHistory = async (manutencaoId) => {
+    try {
+      const response = await API.maintenanceHistory.getHistory(manutencaoId);
+      setHistoricoManutencao(response.data.data || []);
+    } catch (err) {
+      console.error('Erro ao carregar histórico:', err);
+    }
+  };
+
+  // Enviar para manutenção
+  const enviarParaManutencao = async (manutencaoId, tipoEnvio, contato) => {
+    try {
+      await API.maintenanceHistory.sendToMaintenance({
+        manutencaoId,
+        tipo_envio: tipoEnvio,
+        contato
+      });
+      await loadMaintenanceHistory(manutencaoId);
+      alert('Manutenção enviada com sucesso!');
+    } catch (err) {
+      alert('Erro ao enviar manutenção');
+    }
+  };
+
+  // Atualizar status de etapa
+  const atualizarStatusEtapa = async (etapaId, status, observacoes) => {
+    try {
+      await API.maintenanceHistory.updateStatus(etapaId, { status, observacoes });
+      await loadMaintenanceHistory(manutencaoSelecionada.id);
+      alert('Status atualizado!');
+    } catch (err) {
+      alert('Erro ao atualizar status');
+    }
+  };
+
+  // Ver detalhes da manutenção
+  const verDetalhesManutencao = async (manutencao) => {
+    setManutencaoSelecionada(manutencao);
+    await loadMaintenanceHistory(manutencao.id);
+    setShowModal('detalhes-manutencao');
+  };
+
   // Download CT-e
   const downloadCte = async (id, nome) => {
     try {
@@ -177,6 +223,44 @@ const SistemaLogistica = () => {
     }
   };
 
+  // Excluir veículo
+  const excluirVeiculo = async (id) => {
+    if (window.confirm('Tem certeza que deseja excluir este veículo?')) {
+      try {
+        await API.vehicles.delete(id);
+        await loadVehicles();
+        alert('Veículo excluído com sucesso!');
+      } catch (err) {
+        alert('Erro ao excluir veículo');
+      }
+    }
+  };
+
+  // Excluir motorista
+  const excluirMotorista = async (id) => {
+    if (window.confirm('Tem certeza que deseja excluir este motorista?')) {
+      try {
+        await API.users.delete(id);
+        await loadDrivers();
+        alert('Motorista excluído com sucesso!');
+      } catch (err) {
+        alert('Erro ao excluir motorista');
+      }
+    }
+  };
+
+  // Editar veículo
+  const editarVeiculo = (veiculo) => {
+    setEditando({ tipo: 'veiculo', id: veiculo.id, dados: veiculo });
+    setShowModal('veiculo');
+  };
+
+  // Editar motorista
+  const editarMotorista = (motorista) => {
+    setEditando({ tipo: 'motorista', id: motorista.id, dados: motorista });
+    setShowModal('motorista');
+  };
+
   // Logout
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -193,6 +277,8 @@ const SistemaLogistica = () => {
 
   // Form Veículo
   const FormVeiculo = () => {
+    const isEditing = editando.tipo === 'veiculo';
+    
     const handleSubmit = async (e) => {
       e.preventDefault();
       setLoading(true);
@@ -207,10 +293,17 @@ const SistemaLogistica = () => {
           km_atual: parseInt(e.target.km.value)
         };
 
-        await API.vehicles.create(data);
+        if (isEditing) {
+          await API.vehicles.update(editando.id, data);
+          alert('Veículo atualizado com sucesso!');
+        } else {
+          await API.vehicles.create(data);
+          alert('Veículo cadastrado com sucesso!');
+        }
+        
         await loadVehicles();
         setShowModal(null);
-        alert('Veículo cadastrado com sucesso!');
+        setEditando({ tipo: null, id: null, dados: null });
 
       } catch (err) {
         const errorInfo = handleAPIError(err);
@@ -224,7 +317,7 @@ const SistemaLogistica = () => {
       <form onSubmit={handleSubmit} className="form">
         <div className="form-group">
           <label className="label">Tipo</label>
-          <select name="tipo" required className="input">
+          <select name="tipo" required className="input" defaultValue={editando.dados?.tipo}>
             <option value="Caminhão">Caminhão</option>
             <option value="Carreta">Carreta</option>
             <option value="Van">Van</option>
@@ -233,26 +326,26 @@ const SistemaLogistica = () => {
         </div>
         <div className="form-group">
           <label className="label">Número da Frota</label>
-          <input name="frota" required className="input" placeholder="S-001" pattern="S-\d+" />
+          <input name="frota" required className="input" placeholder="S-001" pattern="S-\d+" defaultValue={editando.dados?.frota} />
         </div>
         <div className="form-group">
           <label className="label">Placa</label>
-          <input name="placa" required className="input" placeholder="ABC-1234" />
+          <input name="placa" required className="input" placeholder="ABC-1234" defaultValue={editando.dados?.placa} />
         </div>
         <div className="form-group">
           <label className="label">Modelo</label>
-          <input name="modelo" required className="input" />
+          <input name="modelo" required className="input" defaultValue={editando.dados?.modelo} />
         </div>
         <div className="form-group">
           <label className="label">Ano</label>
-          <input name="ano" type="number" required className="input" min="1900" />
+          <input name="ano" type="number" required className="input" min="1900" defaultValue={editando.dados?.ano} />
         </div>
         <div className="form-group">
           <label className="label">Quilometragem Atual</label>
-          <input name="km" type="number" required className="input" min="0" />
+          <input name="km" type="number" required className="input" min="0" defaultValue={editando.dados?.km_atual} />
         </div>
         <button type="submit" className="button-primary" disabled={loading}>
-          {loading ? 'Cadastrando...' : 'Cadastrar Veículo'}
+          {loading ? (isEditing ? 'Atualizando...' : 'Cadastrando...') : (isEditing ? 'Atualizar Veículo' : 'Cadastrar Veículo')}
         </button>
       </form>
     );
@@ -260,6 +353,8 @@ const SistemaLogistica = () => {
 
   // Form Motorista (Registro de usuário)
   const FormMotorista = () => {
+    const isEditing = editando.tipo === 'motorista';
+    
     const handleSubmit = async (e) => {
       e.preventDefault();
       setLoading(true);
@@ -268,15 +363,26 @@ const SistemaLogistica = () => {
         const data = {
           nome: e.target.nome.value,
           matricula: e.target.matricula.value,
-          senha: e.target.senha.value,
           perfil: 'Motorista',
           telefone: e.target.telefone.value
         };
+        
+        if (e.target.senha.value) {
+          data.senha = e.target.senha.value;
+        }
 
-        await API.users.create(data);
+        if (isEditing) {
+          await API.users.update(editando.id, data);
+          alert('Motorista atualizado com sucesso!');
+        } else {
+          data.senha = e.target.senha.value;
+          await API.users.create(data);
+          alert('Motorista cadastrado com sucesso!');
+        }
+        
         await loadDrivers();
         setShowModal(null);
-        alert('Motorista cadastrado com sucesso!');
+        setEditando({ tipo: null, id: null, dados: null });
 
       } catch (err) {
         const errorInfo = handleAPIError(err);
@@ -290,22 +396,22 @@ const SistemaLogistica = () => {
       <form onSubmit={handleSubmit} className="form">
         <div className="form-group">
           <label className="label">Nome Completo</label>
-          <input name="nome" required className="input" />
+          <input name="nome" required className="input" defaultValue={editando.dados?.nome} />
         </div>
         <div className="form-group">
           <label className="label">Matrícula</label>
-          <input name="matricula" required className="input" minLength="3" placeholder="Ex: 001" />
+          <input name="matricula" required className="input" minLength="3" placeholder="Ex: 001" defaultValue={editando.dados?.matricula} />
         </div>
         <div className="form-group">
-          <label className="label">Senha</label>
-          <input name="senha" type="password" required className="input" minLength="3" />
+          <label className="label">Senha {isEditing && '(deixe vazio para manter atual)'}</label>
+          <input name="senha" type="password" required={!isEditing} className="input" minLength="3" />
         </div>
         <div className="form-group">
           <label className="label">Telefone</label>
-          <input name="telefone" required className="input" placeholder="31 99999-9999" />
+          <input name="telefone" required className="input" placeholder="31 99999-9999" defaultValue={editando.dados?.telefone} />
         </div>
         <button type="submit" className="button-primary" disabled={loading}>
-          {loading ? 'Cadastrando...' : 'Cadastrar Motorista'}
+          {loading ? (isEditing ? 'Atualizando...' : 'Cadastrando...') : (isEditing ? 'Atualizar Motorista' : 'Cadastrar Motorista')}
         </button>
       </form>
     );
@@ -384,6 +490,126 @@ const SistemaLogistica = () => {
           {loading ? 'Registrando...' : 'Registrar Manutenção'}
         </button>
       </form>
+    );
+  };
+
+  // Form Enviar para Manutenção
+  const FormEnviarManutencao = () => {
+    const [tipoEnvio, setTipoEnvio] = useState('Email');
+    
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      let contato;
+      
+      if (tipoEnvio === 'Email') {
+        contato = 'manutencao@empresa.com'; // Email padrão do setor
+      } else {
+        contato = e.target.contato.value;
+      }
+      
+      await enviarParaManutencao(manutencaoSelecionada.id, tipoEnvio, contato);
+      setShowModal(null);
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="form">
+        <div className="form-group">
+          <label className="label">Tipo de Envio</label>
+          <select 
+            name="tipo" 
+            required 
+            className="input" 
+            value={tipoEnvio}
+            onChange={(e) => setTipoEnvio(e.target.value)}
+          >
+            <option value="Email">Email (Setor de Manutenção)</option>
+            <option value="WhatsApp">WhatsApp</option>
+            <option value="Google Forms">Google Forms</option>
+          </select>
+        </div>
+        {tipoEnvio !== 'Email' && (
+          <div className="form-group">
+            <label className="label">Contato/Destino</label>
+            <input 
+              name="contato" 
+              required 
+              className="input" 
+              placeholder="Contato do destinatário"
+            />
+          </div>
+        )}
+        {tipoEnvio === 'Email' && (
+          <div style={{padding: '10px', backgroundColor: '#e3f2fd', borderRadius: '8px', marginBottom: '15px'}}>
+            <p style={{margin: 0, fontSize: '14px'}}>
+              📧 Será enviado para: <strong>manutencao@empresa.com</strong>
+            </p>
+          </div>
+        )}
+        <button type="submit" className="button-primary">
+          Enviar para Manutenção
+        </button>
+      </form>
+    );
+  };
+
+  // Modal Detalhes da Manutenção
+  const DetalhesManutencao = () => {
+    return (
+      <div className="form">
+        <div className="card" style={{marginBottom: '20px'}}>
+          <h4>Informações da Manutenção</h4>
+          <p><strong>Veículo:</strong> {manutencaoSelecionada?.veiculo?.placa}</p>
+          <p><strong>Tipo:</strong> {manutencaoSelecionada?.tipo}</p>
+          <p><strong>Descrição:</strong> {manutencaoSelecionada?.descricao}</p>
+          <p><strong>Gravidade:</strong> {manutencaoSelecionada?.gravidade}</p>
+        </div>
+
+        {['Assistente', 'Gerente'].includes(currentUser.perfil) && historicoManutencao.length === 0 && (
+          <button 
+            onClick={() => setShowModal('enviar-manutencao')} 
+            className="button-primary" 
+            style={{marginBottom: '20px'}}
+          >
+            Enviar para Manutenção
+          </button>
+        )}
+
+        <h4>Histórico de Etapas</h4>
+        {historicoManutencao.length === 0 ? (
+          <p>Nenhuma etapa registrada ainda.</p>
+        ) : (
+          <div className="list">
+            {historicoManutencao.map((etapa, index) => (
+              <div key={etapa.id} className="card" style={{marginBottom: '10px'}}>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                  <div>
+                    <h5>{etapa.etapa}</h5>
+                    <p>{etapa.descricao}</p>
+                    {etapa.observacoes && <p><em>Obs: {etapa.observacoes}</em></p>}
+                    <small>Responsável: {etapa.responsavel?.nome}</small>
+                  </div>
+                  <div style={{textAlign: 'right'}}>
+                    <span className={`badge ${
+                      etapa.status === 'Concluída' ? 'badge-completed' : 'badge-pending'
+                    }`}>
+                      {etapa.status}
+                    </span>
+                    {['Assistente', 'Gerente'].includes(currentUser.perfil) && etapa.status === 'Pendente' && (
+                      <button 
+                        onClick={() => atualizarStatusEtapa(etapa.id, 'Concluída', '')}
+                        className="button-primary" 
+                        style={{fontSize: '12px', padding: '4px 8px', marginTop: '5px'}}
+                      >
+                        Concluir
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -520,12 +746,12 @@ const SistemaLogistica = () => {
 
       <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
         <div className="card">
-          <h3 className="card-title flex items-center">
+          <h3 className="card-title flex items-center" style={{marginBottom: '20px'}}>
             <Clock size={20} className="mr-2" />
             Manutenções Recentes
           </h3>
           <div className="list">
-            {manutencoes.slice(0, 3).map(m => {
+            {manutencoes.filter(m => m.status !== 'Concluída').slice(0, 3).map(m => {
               const badgeClass = m.gravidade === 'Crítica' ? 'badge-critical' :
                                  m.gravidade === 'Alta' ? 'badge-high' :
                                  m.gravidade === 'Média' ? 'badge-medium' : 'badge-low';
@@ -545,12 +771,12 @@ const SistemaLogistica = () => {
         </div>
 
         <div className="card">
-          <h3 className="card-title flex items-center">
+          <h3 className="card-title flex items-center" style={{marginBottom: '20px'}}>
             <FileText size={20} className="mr-2" />
             Documentos Anexados
           </h3>
           <div className="list">
-            {ctes.slice(0, 3).map(c => (
+            {ctes.filter(c => c.status !== 'Concluído').slice(0, 3).map(c => (
               <div key={c.id} className="list-item">
                 <div className="flex-1">
                   <p className="list-item-title">{c.numero}</p>
@@ -601,6 +827,24 @@ const SistemaLogistica = () => {
               <p className="info-row"><span className="info-label">Ano:</span> {v.ano}</p>
               <p className="info-row"><span className="info-label">KM:</span> {v.km_atual?.toLocaleString()}</p>
               <p className="info-row"><span className="info-label">Status:</span> {v.status}</p>
+              {['Assistente', 'Gerente'].includes(currentUser.perfil) && (
+                <div style={{display: 'flex', gap: '8px', marginTop: '10px'}}>
+                  <button 
+                    onClick={() => editarVeiculo(v)} 
+                    className="button-primary" 
+                    style={{backgroundColor: '#3B82F6', fontSize: '12px', padding: '4px 8px'}}
+                  >
+                    Modificar
+                  </button>
+                  <button 
+                    onClick={() => excluirVeiculo(v.id)} 
+                    className="button-primary" 
+                    style={{backgroundColor: '#EF4444', fontSize: '12px', padding: '4px 8px'}}
+                  >
+                    Excluir
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -633,6 +877,24 @@ const SistemaLogistica = () => {
             <div className="card-body">
               <p className="info-row"><span className="info-label">Matrícula:</span> {m.matricula}</p>
               <p className="info-row"><span className="info-label">Telefone:</span> {m.telefone}</p>
+              {['Assistente', 'Gerente'].includes(currentUser.perfil) && (
+                <div style={{display: 'flex', gap: '8px', marginTop: '10px'}}>
+                  <button 
+                    onClick={() => editarMotorista(m)} 
+                    className="button-primary" 
+                    style={{backgroundColor: '#3B82F6', fontSize: '12px', padding: '4px 8px'}}
+                  >
+                    Modificar
+                  </button>
+                  <button 
+                    onClick={() => excluirMotorista(m.id)} 
+                    className="button-primary" 
+                    style={{backgroundColor: '#EF4444', fontSize: '12px', padding: '4px 8px'}}
+                  >
+                    Excluir
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -675,20 +937,22 @@ const SistemaLogistica = () => {
           </button>
         </div>
         
-        <div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}>
-          <button 
-            onClick={() => setSubTab({...subTab, manutencoes: 'pendentes'})} 
-            className={subTab.manutencoes === 'pendentes' ? 'nav-button-active' : 'nav-button'}
-          >
-            Pendentes
-          </button>
-          <button 
-            onClick={() => setSubTab({...subTab, manutencoes: 'concluidas'})} 
-            className={subTab.manutencoes === 'concluidas' ? 'nav-button-active' : 'nav-button'}
-          >
-            Concluídas
-          </button>
-        </div>
+        {['Assistente', 'Gerente'].includes(currentUser.perfil) && (
+          <div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}>
+            <button 
+              onClick={() => setSubTab({...subTab, manutencoes: 'pendentes'})} 
+              className={subTab.manutencoes === 'pendentes' ? 'nav-button-active' : 'nav-button'}
+            >
+              Pendentes
+            </button>
+            <button 
+              onClick={() => setSubTab({...subTab, manutencoes: 'concluidas'})} 
+              className={subTab.manutencoes === 'concluidas' ? 'nav-button-active' : 'nav-button'}
+            >
+              Concluídas
+            </button>
+          </div>
+        )}
 
         {subTab.manutencoes === 'concluidas' && (
           <div className="card" style={{marginBottom: '20px'}}>
@@ -724,7 +988,7 @@ const SistemaLogistica = () => {
         )}
         
         <div className="list">
-          {filtrarManutencoes(subTab.manutencoes).map(m => {
+          {filtrarManutencoes(currentUser.perfil === 'Motorista' ? 'pendentes' : subTab.manutencoes).map(m => {
             const gravidadeClass = m.gravidade === 'Crítica' ? 'badge-critical' :
                                    m.gravidade === 'Alta' ? 'badge-high' :
                                    m.gravidade === 'Média' ? 'badge-medium' : 'badge-low';
@@ -747,11 +1011,18 @@ const SistemaLogistica = () => {
                   <div className="flex" style={{flexDirection: 'column', gap: '8px', alignItems: 'flex-end'}}>
                     <span className={`badge ${gravidadeClass}`}>{m.gravidade}</span>
                     <span className={`badge ${statusClass}`}>{m.status}</span>
+                    <button 
+                      onClick={() => verDetalhesManutencao(m)} 
+                      className="button-primary" 
+                      style={{fontSize: '12px', padding: '4px 8px', backgroundColor: '#3B82F6'}}
+                    >
+                      Detalhes
+                    </button>
                     {['Assistente', 'Gerente'].includes(currentUser.perfil) && m.status !== 'Concluída' && (
                       <button 
                         onClick={() => concluirManutencao(m.id)} 
                         className="button-primary" 
-                        style={{fontSize: '12px', padding: '4px 8px'}}
+                        style={{fontSize: '12px', padding: '4px 8px', marginLeft: '5px'}}
                       >
                         Concluir
                       </button>
@@ -800,20 +1071,22 @@ const SistemaLogistica = () => {
           </button>
         </div>
         
-        <div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}>
-          <button 
-            onClick={() => setSubTab({...subTab, ctes: 'ativos'})} 
-            className={subTab.ctes === 'ativos' ? 'nav-button-active' : 'nav-button'}
-          >
-            Ativos
-          </button>
-          <button 
-            onClick={() => setSubTab({...subTab, ctes: 'concluidos'})} 
-            className={subTab.ctes === 'concluidos' ? 'nav-button-active' : 'nav-button'}
-          >
-            Concluídos
-          </button>
-        </div>
+        {['Assistente', 'Gerente'].includes(currentUser.perfil) && (
+          <div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}>
+            <button 
+              onClick={() => setSubTab({...subTab, ctes: 'ativos'})} 
+              className={subTab.ctes === 'ativos' ? 'nav-button-active' : 'nav-button'}
+            >
+              Ativos
+            </button>
+            <button 
+              onClick={() => setSubTab({...subTab, ctes: 'concluidos'})} 
+              className={subTab.ctes === 'concluidos' ? 'nav-button-active' : 'nav-button'}
+            >
+              Concluídos
+            </button>
+          </div>
+        )}
 
         {subTab.ctes === 'concluidos' && (
           <div className="card" style={{marginBottom: '20px'}}>
@@ -849,7 +1122,7 @@ const SistemaLogistica = () => {
         )}
         
         <div className="list">
-          {filtrarCtes(subTab.ctes).map(c => (
+          {filtrarCtes(currentUser.perfil === 'Motorista' ? 'ativos' : subTab.ctes).map(c => (
             <div key={c.id} className="card">
               <div className="card-header">
                 <FileText size={20} color={c.status === 'Concluído' ? "#22C55E" : "#6B7280"} />
@@ -946,13 +1219,13 @@ const SistemaLogistica = () => {
       </main>
 
       {showModal === 'veiculo' && (
-        <Modal title="Cadastrar Novo Veículo">
+        <Modal title={editando.tipo === 'veiculo' ? 'Modificar Veículo' : 'Cadastrar Novo Veículo'}>
           <FormVeiculo />
         </Modal>
       )}
 
       {showModal === 'motorista' && (
-        <Modal title="Cadastrar Novo Motorista">
+        <Modal title={editando.tipo === 'motorista' ? 'Modificar Motorista' : 'Cadastrar Novo Motorista'}>
           <FormMotorista />
         </Modal>
       )}
@@ -966,6 +1239,18 @@ const SistemaLogistica = () => {
       {showModal === 'cte' && (
         <Modal title="Anexar CT-e">
           <FormCTE />
+        </Modal>
+      )}
+
+      {showModal === 'detalhes-manutencao' && (
+        <Modal title="Detalhes da Manutenção">
+          <DetalhesManutencao />
+        </Modal>
+      )}
+
+      {showModal === 'enviar-manutencao' && (
+        <Modal title="Enviar para Manutenção">
+          <FormEnviarManutencao />
         </Modal>
       )}
     </div>
