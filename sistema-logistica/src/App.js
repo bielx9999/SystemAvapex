@@ -268,15 +268,20 @@ const SistemaLogistica = () => {
     }
   };
 
-  // Excluir motorista
+  // Excluir funcionário
   const excluirMotorista = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este funcionário?')) {
       try {
-        await API.users.delete(id);
+        console.log('Tentando excluir funcionário com ID:', id);
+        const response = await API.users.delete(id);
+        console.log('Resposta da exclusão:', response);
         await loadDrivers();
         alert('Funcionário excluído com sucesso!');
       } catch (err) {
-        alert('Erro ao excluir funcionário');
+        console.error('Erro completo ao excluir funcionário:', err);
+        console.error('Response do erro:', err.response);
+        const errorInfo = handleAPIError(err);
+        alert('Erro ao excluir funcionário: ' + errorInfo.message);
       }
     }
   };

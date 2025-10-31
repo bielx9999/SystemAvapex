@@ -70,7 +70,7 @@ router.put('/:id', protect, authorize('Gerente', 'Assistente'), async (req, res,
 });
 
 // Desativar usuário
-router.delete('/:id', protect, authorize('Gerente'), async (req, res, next) => {
+router.delete('/:id', protect, authorize('Gerente', 'Assistente'), async (req, res, next) => {
   try {
     const user = await User.findByPk(req.params.id);
 
