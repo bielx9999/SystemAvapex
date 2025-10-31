@@ -60,15 +60,15 @@ const SistemaLogistica = () => {
     }
   };
 
-  // Carregar motoristas
+  // Carregar funcionários
   const loadDrivers = async () => {
     try {
       const response = await API.users.getAll();
-      const drivers = (response.data.data || []).filter(u => u.perfil === 'Motorista');
-      setMotoristas(drivers);
+      const funcionarios = (response.data.data || []).filter(u => ['Motorista', 'Assistente', 'Gerente'].includes(u.perfil));
+      setMotoristas(funcionarios);
     } catch (err) {
-      console.error('Erro ao carregar motoristas:', err);
-      setError('Erro ao carregar motoristas');
+      console.error('Erro ao carregar funcionários:', err);
+      setError('Erro ao carregar funcionários');
     }
   };
 
@@ -270,13 +270,13 @@ const SistemaLogistica = () => {
 
   // Excluir motorista
   const excluirMotorista = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir este motorista?')) {
+    if (window.confirm('Tem certeza que deseja excluir este funcionário?')) {
       try {
         await API.users.delete(id);
         await loadDrivers();
-        alert('Motorista excluído com sucesso!');
+        alert('Funcionário excluído com sucesso!');
       } catch (err) {
-        alert('Erro ao excluir motorista');
+        alert('Erro ao excluir funcionário');
       }
     }
   };
@@ -399,7 +399,7 @@ const SistemaLogistica = () => {
         const data = {
           nome: e.target.nome.value,
           matricula: e.target.matricula.value,
-          perfil: 'Motorista',
+          perfil: e.target.perfil.value,
           telefone: e.target.telefone.value
         };
         
@@ -409,11 +409,11 @@ const SistemaLogistica = () => {
 
         if (isEditing) {
           await API.users.update(editando.id, data);
-          alert('Motorista atualizado com sucesso!');
+          alert('Funcionário atualizado com sucesso!');
         } else {
           data.senha = e.target.senha.value;
           await API.users.create(data);
-          alert('Motorista cadastrado com sucesso!');
+          alert('Funcionário cadastrado com sucesso!');
         }
         
         await loadDrivers();
@@ -439,6 +439,14 @@ const SistemaLogistica = () => {
           <input name="matricula" required className="input" minLength="3" placeholder="Ex: 001" defaultValue={editando.dados?.matricula} />
         </div>
         <div className="form-group">
+          <label className="label">Função</label>
+          <select name="perfil" required className="input" defaultValue={editando.dados?.perfil}>
+            <option value="Motorista">Motorista</option>
+            <option value="Assistente">Assistente</option>
+            <option value="Gerente">Gerente</option>
+          </select>
+        </div>
+        <div className="form-group">
           <label className="label">Senha {isEditing && '(deixe vazio para manter atual)'}</label>
           <input name="senha" type="password" required={!isEditing} className="input" minLength="3" />
         </div>
@@ -447,7 +455,7 @@ const SistemaLogistica = () => {
           <input name="telefone" required className="input" placeholder="31 99999-9999" defaultValue={editando.dados?.telefone} />
         </div>
         <button type="submit" className="button-primary" disabled={loading}>
-          {loading ? (isEditing ? 'Atualizando...' : 'Cadastrando...') : (isEditing ? 'Atualizar Motorista' : 'Cadastrar Motorista')}
+          {loading ? (isEditing ? 'Atualizando...' : 'Cadastrando...') : (isEditing ? 'Atualizar Funcionário' : 'Cadastrar Funcionário')}
         </button>
       </form>
     );
@@ -922,13 +930,13 @@ const SistemaLogistica = () => {
     <div className="content">
       <div className="page-header">
         <div>
-          <h2 className="page-title">Motoristas</h2>
-          <p className="page-subtitle">Cadastro de funcionarios</p>
+          <h2 className="page-title">Funcionários</h2>
+          <p className="page-subtitle">Cadastro de funcionários</p>
         </div>
         {['Gerente', 'Assistente'].includes(currentUser.perfil) && (
           <button onClick={() => setShowModal('motorista')} className="button-primary">
             <Plus size={18} className="mr-2" />
-            Novo Motorista
+            Novo Funcionário
           </button>
         )}
       </div>
@@ -942,6 +950,7 @@ const SistemaLogistica = () => {
             </div>
             <div className="card-body">
               <p className="info-row"><span className="info-label">Matrícula:</span> {m.matricula}</p>
+              <p className="info-row"><span className="info-label">Função:</span> {m.perfil}</p>
               <p className="info-row"><span className="info-label">Telefone:</span> {m.telefone}</p>
               {['Assistente', 'Gerente'].includes(currentUser.perfil) && (
                 <div style={{display: 'flex', gap: '8px', marginTop: '10px'}}>
@@ -1315,7 +1324,7 @@ const SistemaLogistica = () => {
           )}
           {['Assistente', 'Gerente'].includes(currentUser.perfil) && (
             <button onClick={() => setActiveTab('motoristas')} className={activeTab === 'motoristas' ? 'nav-button-active' : 'nav-button'}>
-              Motoristas
+              Funcionários
             </button>
           )}
           <button onClick={() => setActiveTab('manutencoes')} className={activeTab === 'manutencoes' ? 'nav-button-active' : 'nav-button'}>
@@ -1342,7 +1351,7 @@ const SistemaLogistica = () => {
       )}
 
       {showModal === 'motorista' && (
-        <Modal title={editando.tipo === 'motorista' ? 'Modificar Motorista' : 'Cadastrar Novo Motorista'}>
+        <Modal title={editando.tipo === 'motorista' ? 'Modificar Funcionário' : 'Cadastrar Novo Funcionário'}>
           <FormMotorista />
         </Modal>
       )}
