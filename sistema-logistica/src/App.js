@@ -1222,11 +1222,11 @@ const SistemaLogistica = () => {
                 />
                 <input 
                   type="text" 
-                  placeholder="Pesquisar..." 
+                  placeholder="Buscar Comprovante" 
                   value={filtros.pesquisa}
                   onChange={(e) => setFiltros({...filtros, pesquisa: e.target.value})}
                   className="input" 
-                  style={{flex: '2', minWidth: '200px'}}
+                  style={{flex: '1', minWidth: '150px'}}
                 />
               </div>
             </div>
