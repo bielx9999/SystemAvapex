@@ -19,7 +19,7 @@ const SistemaLogistica = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [subTab, setSubTab] = useState({ manutencoes: 'pendentes', ctes: 'ativos' });
-  const [filtros, setFiltros] = useState({ dataInicio: '', dataFim: '', pesquisa: '' });
+  const [filtros, setFiltros] = useState({ dataInicio: '', dataFim: '', placa: '', tipoManutencao: '' });
   const [editando, setEditando] = useState({ tipo: null, id: null, dados: null });
   const [historicoManutencao, setHistoricoManutencao] = useState([]);
   const [manutencaoSelecionada, setManutencaoSelecionada] = useState(null);
@@ -980,18 +980,17 @@ const SistemaLogistica = () => {
         dados = manutencoes.filter(m => m.status === 'Concluída');
       }
       
-      if (filtros.dataInicio || filtros.dataFim || filtros.pesquisa) {
+      if (filtros.dataInicio || filtros.dataFim || filtros.placa || filtros.tipoManutencao) {
         dados = dados.filter(item => {
           const dataItem = new Date(item.data_programada);
           const dataInicio = filtros.dataInicio ? new Date(filtros.dataInicio) : null;
           const dataFim = filtros.dataFim ? new Date(filtros.dataFim) : null;
           
           const passaData = (!dataInicio || dataItem >= dataInicio) && (!dataFim || dataItem <= dataFim);
-          const passaPesquisa = !filtros.pesquisa || 
-            item.veiculo?.placa?.toLowerCase().includes(filtros.pesquisa.toLowerCase()) ||
-            item.descricao?.toLowerCase().includes(filtros.pesquisa.toLowerCase());
+          const passaPlaca = !filtros.placa || item.veiculo?.placa === filtros.placa;
+          const passaTipo = !filtros.tipoManutencao || item.tipo === filtros.tipoManutencao;
           
-          return passaData && passaPesquisa;
+          return passaData && passaPlaca && passaTipo;
         });
       }
       
@@ -1054,14 +1053,35 @@ const SistemaLogistica = () => {
                   className="input" 
                   style={{flex: '1', minWidth: '150px'}}
                 />
-                <input 
-                  type="text" 
-                  placeholder="Pesquisar..." 
-                  value={filtros.pesquisa}
-                  onChange={(e) => setFiltros({...filtros, pesquisa: e.target.value})}
+                <select 
+                  value={filtros.placa}
+                  onChange={(e) => setFiltros({...filtros, placa: e.target.value})}
                   className="input" 
-                  style={{flex: '2', minWidth: '200px'}}
-                />
+                  style={{flex: '1', minWidth: '150px'}}
+                >
+                  <option value="">Todas as placas</option>
+                  {veiculos.filter(v => v.ativo).map(v => (
+                    <option key={v.id} value={v.placa}>{v.placa} - {v.modelo}</option>
+                  ))}
+                </select>
+                <select 
+                  value={filtros.tipoManutencao}
+                  onChange={(e) => setFiltros({...filtros, tipoManutencao: e.target.value})}
+                  className="input" 
+                  style={{flex: '1', minWidth: '150px'}}
+                >
+                  <option value="">Todos os tipos</option>
+                  <option value="Preventiva">Preventiva</option>
+                  <option value="Corretiva">Corretiva</option>
+                  <option value="Preditiva">Preditiva</option>
+                </select>
+                <button 
+                  onClick={() => setFiltros({ dataInicio: '', dataFim: '', placa: '', tipoManutencao: '' })}
+                  className="button-primary" 
+                  style={{backgroundColor: '#6B7280', minWidth: '100px'}}
+                >
+                  Limpar
+                </button>
               </div>
             </div>
           </div>
