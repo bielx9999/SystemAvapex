@@ -806,8 +806,8 @@ const SistemaLogistica = () => {
         
         <div className="stat-card border-black">
           <Users size={32} color="#000" />
-          <p className="stat-label">Motoristas Cadastrados</p>
-          <p className="stat-value">{dashboardStats?.motoristas?.total || motoristas.length}</p>
+          <p className="stat-label">Funcionários Cadastrados</p>
+          <p className="stat-value">{dashboardStats?.funcionarios?.total || motoristas.length}</p>
         </div>
         
         <div className="stat-card border-red">

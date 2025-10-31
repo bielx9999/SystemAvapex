@@ -5,7 +5,7 @@ exports.getStats = async (req, res, next) => {
   try {
     const totalVeiculos = await Vehicle.count({ where: { ativo: true } });
     const veiculosDisponiveis = await Vehicle.count({ where: { status: 'Disponível', ativo: true } });
-    const totalMotoristas = await User.count({ where: { perfil: 'Motorista', ativo: true } });
+    const totalFuncionarios = await User.count({ where: { perfil: { [Op.in]: ['Motorista', 'Assistente', 'Gerente'] }, ativo: true } });
     const manutencoesUrgentes = await Maintenance.count({
       where: {
         status: { [Op.in]: ['Pendente', 'Em Andamento'] },
@@ -22,7 +22,7 @@ exports.getStats = async (req, res, next) => {
       success: true,
       data: {
         veiculos: { total: totalVeiculos, disponiveis: veiculosDisponiveis },
-        motoristas: { total: totalMotoristas },
+        funcionarios: { total: totalFuncionarios },
         manutencoes: { urgentes: manutencoesUrgentes },
         ctes: { mes_atual: cteMesAtual, em_transito: cteEmTransito }
       }
