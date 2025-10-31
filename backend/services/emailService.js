@@ -19,6 +19,7 @@ const createTransporter = () => {
 // Enviar email de manutenção
 const sendMaintenanceEmail = async (manutencao, veiculo, destinatario) => {
   try {
+    
     const transporter = createTransporter();
 
     const htmlContent = `
@@ -80,7 +81,7 @@ const sendMaintenanceEmail = async (manutencao, veiculo, destinatario) => {
             </div>
             <div class="info-row">
               <span class="label">Gravidade:</span> 
-              <span class="priority ${manutencao.gravidade?.toLowerCase() || 'baixa'}">${manutencao.gravidade || 'N/A'}</span>
+              <span class="priority ${(manutencao.gravidade || 'baixa').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}">${manutencao.gravidade || 'N/A'}</span>
             </div>
             <div class="info-row">
               <span class="label">Status:</span> 

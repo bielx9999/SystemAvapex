@@ -36,8 +36,9 @@ exports.loginValidation = [
 exports.vehicleValidation = [
   body('tipo').isIn(['Caminhão', 'Carreta', 'Van', 'Utilitário'])
     .withMessage('Tipo de veículo inválido'),
-  body('placa').trim().notEmpty().withMessage('Placa é obrigatória')
-    .matches(/^[A-Z]{3}-\d{4}$/).withMessage('Formato de placa inválido (ABC-1234)'),
+  body('frota').trim().notEmpty().withMessage('Número da frota é obrigatório')
+    .matches(/^S-\d+$/).withMessage('Formato de frota inválido (S-XXX)'),
+  body('placa').trim().notEmpty().withMessage('Placa é obrigatória'),
   body('modelo').trim().notEmpty().withMessage('Modelo é obrigatório'),
   body('ano').isInt({ min: 1900, max: new Date().getFullYear() + 1 })
     .withMessage('Ano inválido'),

@@ -242,6 +242,19 @@ const SistemaLogistica = () => {
     }
   };
 
+  // Excluir CT-e
+  const excluirCte = async (id) => {
+    if (window.confirm('Tem certeza que deseja excluir este CT-e?')) {
+      try {
+        await API.ctes.delete(id);
+        await loadCtes();
+        alert('CT-e excluído com sucesso!');
+      } catch (err) {
+        alert('Erro ao excluir CT-e');
+      }
+    }
+  };
+
   // Excluir veículo
   const excluirVeiculo = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este veículo?')) {
@@ -312,6 +325,8 @@ const SistemaLogistica = () => {
           km_atual: parseInt(e.target.km.value)
         };
 
+        console.log('Dados do veículo:', data);
+
         if (isEditing) {
           await API.vehicles.update(editando.id, data);
           alert('Veículo atualizado com sucesso!');
@@ -325,8 +340,10 @@ const SistemaLogistica = () => {
         setEditando({ tipo: null, id: null, dados: null });
 
       } catch (err) {
+        console.error('Erro completo:', err);
+        console.error('Response:', err.response);
         const errorInfo = handleAPIError(err);
-        alert(errorInfo.message);
+        alert(errorInfo.message || 'Erro ao processar requisição');
       } finally {
         setLoading(false);
       }
@@ -337,10 +354,10 @@ const SistemaLogistica = () => {
         <div className="form-group">
           <label className="label">Tipo</label>
           <select name="tipo" required className="input" defaultValue={editando.dados?.tipo}>
-            <option value="TRUCK">TRUCK</option>
-            <option value="CAVALO TRUCADO">CAVALO TRUCADO</option>
-            <option value="CAVALO TOCO">CAVALO TOCO</option>
-            <option value="CARGA SECA - GRADE BAIXA">CARGA SECA - GRADE BAIXA</option>
+            <option value="Caminhão">Caminhão</option>
+            <option value="Carreta">Carreta</option>
+            <option value="Van">Van</option>
+            <option value="Utilitário">Utilitário</option>
           </select>
         </div>
         <div className="form-group">
@@ -544,7 +561,6 @@ const SistemaLogistica = () => {
           >
             <option value="Email">Email (Setor de Manutenção)</option>
             <option value="WhatsApp">WhatsApp</option>
-            <option value="Google Forms">Google Forms</option>
           </select>
         </div>
         {tipoEnvio !== 'Email' && (
@@ -576,8 +592,8 @@ const SistemaLogistica = () => {
   const DetalhesManutencao = () => {
     return (
       <div className="form">
-        <div className="card" style={{marginBottom: '20px', backgroundColor: '#f8f9fa', border: '1px solid #dee2e6'}}>
-          <h4 style={{color: '#495057', marginBottom: '15px'}}>Informações da Manutenção</h4>
+        <div className="card" style={{marginBottom: '1px', backgroundColor: '#f8f9fa', border: '1px solid #dee2e6'}}>
+          <h4 style={{color: '#ffcc29', marginBottom: '20px',}}>Informações da Manutenção</h4>
           <p style={{color: 'white', fontSize: '14px'}}><strong style={{color: 'white'}}>Veículo:</strong> {manutencaoSelecionada?.veiculo?.placa}</p>
           <p style={{color: 'white', fontSize: '14px'}}><strong style={{color: 'white'}}>Tipo:</strong> {manutencaoSelecionada?.tipo}</p>
           <p style={{color: 'white', fontSize: '14px'}}><strong style={{color: 'white'}}>Descrição:</strong> {manutencaoSelecionada?.descricao}</p>
@@ -607,9 +623,9 @@ const SistemaLogistica = () => {
           </button>
         )}
 
-        <h4 style={{color: '#495057', marginBottom: '15px'}}>Histórico de Etapas</h4>
+        <h4 style={{color: '#ffcc29', marginBottom: '15px'}}>Histórico de Etapas</h4>
         {historicoManutencao.length === 0 ? (
-          <p style={{color: '#6c757d', fontStyle: 'italic'}}>Nenhuma etapa registrada ainda.</p>
+          <p style={{color: '#ffcc29', fontStyle: 'italic'}}>Nenhuma etapa registrada ainda.</p>
         ) : (
           <div className="list">
             {historicoManutencao.map((etapa, index) => (
@@ -706,8 +722,8 @@ const SistemaLogistica = () => {
           <input name="numero" required className="input" placeholder="CTE-2025-XXX" />
         </div>
         <div className="form-group">
-          <label className="label">Arquivo CT-e (PDF)</label>
-          <input name="arquivo" type="file" accept=".pdf" required className="input" />
+          <label className="label">Arquivo CT-e</label>
+          <input name="arquivo" type="file" accept=".pdf,.jpg,.jpeg,.png" required className="input" />
         </div>
         <button type="submit" className="button-primary" disabled={loading}>
           {loading ? 'Anexando...' : 'Anexar CT-e'}
@@ -734,8 +750,8 @@ const SistemaLogistica = () => {
         <div className="login-box">
           <div className="login-header">
             <img src="/logo.png" alt="Logo" style={{height: '80px', width: 'auto', marginBottom: '20px', display: 'block', margin: '0 auto 20px auto'}} />
-            <h1 className="login-title">Sistema de Logística</h1>
-            <p className="login-subtitle">Gestão de Frota e Documentação</p>
+            <h1 className="login-title">Sistema Logistica</h1>
+            <p className="login-subtitle">Manutenções e Comprovantes</p>
           </div>
           <form onSubmit={handleLogin} className="login-form">
             <div className="form-group">
@@ -766,30 +782,30 @@ const SistemaLogistica = () => {
   const Dashboard = () => (
     <div className="content">
       <h2 className="page-title">Dashboard</h2>
-      <p className="page-subtitle">{currentUser.perfil}</p>
+
       
       <div className="stats-grid">
         <div className="stat-card border-yellow">
           <Truck size={32} color="#FFCC29" />
-          <p className="stat-label">Veículos</p>
+          <p className="stat-label">Veículos Cadastrados</p>
           <p className="stat-value">{dashboardStats?.veiculos?.total || veiculos.length}</p>
         </div>
         
         <div className="stat-card border-black">
           <Users size={32} color="#000" />
-          <p className="stat-label">Motoristas</p>
+          <p className="stat-label">Motoristas Cadastrados</p>
           <p className="stat-value">{dashboardStats?.motoristas?.total || motoristas.length}</p>
         </div>
         
         <div className="stat-card border-red">
           <AlertTriangle size={32} color="#FF6B6B" />
-          <p className="stat-label">Urgentes</p>
+          <p className="stat-label">Manutenções Urgentes</p>
           <p className="stat-value">{dashboardStats?.manutencoes?.urgentes || 0}</p>
         </div>
         
         <div className="stat-card border-gray">
           <FileText size={32} color="#000000ff" />
-          <p className="stat-label">CT-e</p>
+          <p className="stat-label">Comprovantes Anexados</p>
           <p className="stat-value">{dashboardStats?.ctes?.mes_atual || ctes.length}</p>
         </div>
       </div>
@@ -853,7 +869,7 @@ const SistemaLogistica = () => {
       <div className="page-header">
         <div>
           <h2 className="page-title">Veículos</h2>
-          <p className="page-subtitle">Gestão da frota</p>
+          <p className="page-subtitle">Cadastro de Veículos</p>
         </div>
         {['Gerente', 'Assistente'].includes(currentUser.perfil) && (
           <button onClick={() => setShowModal('veiculo')} className="button-primary">
@@ -907,7 +923,7 @@ const SistemaLogistica = () => {
       <div className="page-header">
         <div>
           <h2 className="page-title">Motoristas</h2>
-          <p className="page-subtitle">Equipe cadastrada</p>
+          <p className="page-subtitle">Cadastro de funcionarios</p>
         </div>
         {['Gerente', 'Assistente'].includes(currentUser.perfil) && (
           <button onClick={() => setShowModal('motorista')} className="button-primary">
@@ -1139,7 +1155,7 @@ const SistemaLogistica = () => {
         <div className="page-header">
           <div>
             <h2 className="page-title">CT-e</h2>
-            <p className="page-subtitle">Documentos de carga</p>
+            <p className="page-subtitle">Comprovantes de Entrega</p>
           </div>
           <button onClick={() => setShowModal('cte')} className="button-primary">
             <Plus size={18} className="mr-2" />
@@ -1210,6 +1226,13 @@ const SistemaLogistica = () => {
                 <p className="info-row"><span className="info-label">Status:</span> {c.status}</p>
                 {['Assistente', 'Gerente'].includes(currentUser.perfil) && (
                   <div style={{display: 'flex', gap: '8px', marginTop: '8px'}}>
+                    <button 
+                      onClick={() => excluirCte(c.id)} 
+                      className="button-primary" 
+                      style={{fontSize: '12px', padding: '4px 8px', backgroundColor: '#EF4444'}}
+                    >
+                      Excluir
+                    </button>
                     {c.arquivo_nome && (
                       <button 
                         onClick={() => downloadCte(c.id, c.arquivo_nome)} 
@@ -1238,19 +1261,17 @@ const SistemaLogistica = () => {
     );
   };
 
-
-
   return (
     <div className="app">
       <header className="header">
         <div className="header-content">
           <div className="header-left">
             <div className="header-logo">
-              <img src="/logoblack-removebg-preview.png" alt="Logo" style={{height: '40px', width: 'auto'}} />
+              <img src="/logoblack-removebg-preview.png" alt="Logo" style={{height: '60px', width: 'auto'}} />
             </div>
             <div>
-              <h1 className="header-title">AvaSystem</h1>
-              <p className="header-subtitle">{currentUser.nome} · {currentUser.perfil}</p>
+              <h1 className="header-title">Avapex System</h1>
+              <p className="header-subtitle">{currentUser.nome} · {currentUser.matricula}</p>
             </div>
           </div>
           <button onClick={handleLogout} className="button-logout">

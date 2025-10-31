@@ -9,7 +9,7 @@ const {
   deleteVehicle
 } = require('../controllers/vehicleController');
 const { protect, authorize } = require('../middleware/auth');
-const { vehicleValidation, validate } = require('../middleware/validators');
+const { vehicleValidation, validate } = require('../middleware/validators-clean');
 
 router.route('/')
   .get(protect, getVehicles)

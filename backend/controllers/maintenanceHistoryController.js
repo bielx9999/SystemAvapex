@@ -94,7 +94,8 @@ const sendToMaintenance = async (req, res) => {
     
     // Buscar dados da manutenção e veículo
     const manutencao = await Maintenance.findByPk(manutencaoId, {
-      include: [{ model: Vehicle, as: 'veiculo' }]
+      include: [{ model: Vehicle, as: 'veiculo' }],
+      attributes: ['id', 'veiculo_id', 'responsavel_id', 'tipo', 'data_programada', 'km_manutencao', 'descricao', 'gravidade', 'status', 'em_andamento', 'createdAt', 'updatedAt']
     });
 
     if (!manutencao) {
@@ -116,6 +117,8 @@ const sendToMaintenance = async (req, res) => {
     // Enviar email se o tipo for Email
     if (tipo_envio === 'Email') {
       const emailDestino = contato || process.env.MAINTENANCE_EMAIL || 'manutencao@empresa.com';
+      
+      
       const emailResult = await sendMaintenanceEmail(manutencao, manutencao.veiculo, emailDestino);
       if (!emailResult.success) {
         return res.status(500).json({
