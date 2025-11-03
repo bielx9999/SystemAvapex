@@ -41,10 +41,10 @@ body {
 }
 
 .header-logo img {
-  width: 200px;
-  height: 60px;
-  margin-bottom: auto;
-  margin-top: auto;
+  height: 40px;
+  width: auto;
+  display: block;
+  margin: auto;
 }
 
 
@@ -714,6 +714,14 @@ select.input {
   border-left: 4px solid #22c55e;
 }
 
+.border-black {
+  border-left: 4px solid #000;
+}
+
+.border-gray {
+  border-left: 4px solid #6b7280;
+}
+
 /* Action Buttons Group */
 .action-buttons {
   display: flex;
@@ -738,6 +746,100 @@ select.input {
 .empty-state-text {
   font-size: 16px;
   margin: 0;
+}
+
+/* PWA e Mobile Responsivo */
+@media (max-width: 768px) {
+  .header {
+    padding: 10px;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .nav-content {
+    min-width: max-content;
+    padding: 0 10px;
+  }
+  
+  .nav-button, .nav-button-active {
+    white-space: nowrap;
+    min-width: auto;
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  
+  .main {
+    padding: 10px;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .card {
+    padding: 15px;
+  }
+  
+  .modal {
+    width: 95%;
+    max-width: none;
+    margin: 20px auto;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .input, .button-primary {
+    font-size: 16px;
+    padding: 12px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-title {
+    font-size: 18px;
+  }
+  
+  .page-title {
+    font-size: 20px;
+  }
+  
+  .card-title {
+    font-size: 16px;
+  }
+}
+
+/* Touch targets */
+@media (hover: none) and (pointer: coarse) {
+  .button-primary, .nav-button, .nav-button-active {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
 /* Responsive */

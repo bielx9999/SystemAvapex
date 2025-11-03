@@ -31,7 +31,11 @@ app.use(helmet());
 
 // CORS
 app.use(cors({
-  origin: [process.env.FRONTEND_URL || 'http://localhost:3000', 'http://localhost:3000'],
+  origin: [
+    process.env.FRONTEND_URL || 'http://localhost:3000', 
+    'http://localhost:3000',
+    'http://192.168.2.60:3000'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -120,8 +124,9 @@ const startServer = async () => {
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log(`🚀 Servidor rodando na porta ${PORT}`);
       console.log(`📍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`🌐 URL: http://localhost:${PORT}`);
-      console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
+      console.log(`🌐 URL Local: http://localhost:${PORT}`);
+      console.log(`🌐 URL Rede: http://192.168.2.60:${PORT}`);
+      console.log(`🏥 Health Check: http://192.168.2.60:${PORT}/health`);
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     });
 

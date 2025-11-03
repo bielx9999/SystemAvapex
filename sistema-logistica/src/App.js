@@ -1316,7 +1316,7 @@ const SistemaLogistica = () => {
         <div className="header-content">
           <div className="header-left">
             <div className="header-logo">
-              <img src="/logoblack-removebg-preview.png" alt="Logo" style={{height: '60px', width: 'auto'}} />
+              <img src="/logoapp.png" alt="Logo" style={{height: '40px', width: 'auto'}} />
             </div>
             <div>
               <h1 className="header-title">Avapex System</h1>
