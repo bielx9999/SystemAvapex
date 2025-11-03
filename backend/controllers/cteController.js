@@ -2,7 +2,10 @@ const { Cte, Vehicle, User } = require('../models');
 
 exports.getCtes = async (req, res, next) => {
   try {
+    const whereClause = req.user.perfil === 'Motorista' ? { motorista_id: req.user.id } : {};
+    
     const ctes = await Cte.findAll({
+      where: whereClause,
       order: [['createdAt', 'DESC']]
     });
     res.status(200).json({ success: true, count: ctes.length, data: ctes });
@@ -13,7 +16,10 @@ exports.getCtes = async (req, res, next) => {
 
 exports.getCte = async (req, res, next) => {
   try {
-    const cte = await Cte.findByPk(req.params.id, {
+    const whereClause = req.user.perfil === 'Motorista' ? { id: req.params.id, motorista_id: req.user.id } : { id: req.params.id };
+    
+    const cte = await Cte.findOne({
+      where: whereClause,
       include: [
         { model: Vehicle, as: 'veiculo' },
         { model: User, as: 'motorista' }
@@ -34,7 +40,8 @@ exports.createCte = async (req, res, next) => {
       numero: req.body.numero,
       data_emissao: req.body.data_emissao || new Date(),
       arquivo_nome: req.file?.originalname || null,
-      arquivo_path: req.file?.path || null
+      arquivo_path: req.file?.path || null,
+      motorista_id: req.user.id
     });
     
     res.status(201).json({ 

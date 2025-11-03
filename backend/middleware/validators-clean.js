@@ -22,7 +22,7 @@ exports.registerValidation = [
     .isLength({ min: 3 }).withMessage('Senha deve ter no mínimo 3 caracteres'),
   body('perfil').isIn(['Motorista', 'Assistente', 'Gerente'])
     .withMessage('Perfil inválido'),
-  body('telefone').optional().isMobilePhone('pt-BR').withMessage('Telefone inválido'),
+  body('telefone').optional().isLength({ min: 10 }).withMessage('Telefone inválido'),
   body('cnh').optional().isLength({ min: 11, max: 11 }).withMessage('CNH deve ter 11 dígitos')
 ];
 
@@ -34,13 +34,12 @@ exports.loginValidation = [
 
 // Validações para veículo
 exports.vehicleValidation = [
-  body('tipo').isIn(['Caminhão', 'Carreta', 'Van', 'Utilitário'])
+  body('tipo').isIn(['Truck', 'Cavalo', 'Carreta', 'Veiculos Leves'])
     .withMessage('Tipo de veículo inválido'),
-  body('frota').trim().notEmpty().withMessage('Número da frota é obrigatório')
-    .matches(/^S-\d+$/).withMessage('Formato de frota inválido (S-XXX)'),
+  body('frota').trim().notEmpty().withMessage('Número da frota é obrigatório'),
   body('placa').trim().notEmpty().withMessage('Placa é obrigatória'),
   body('modelo').trim().notEmpty().withMessage('Modelo é obrigatório'),
-  body('ano').isInt({ min: 1900, max: new Date().getFullYear() + 1 })
+  body('ano').isInt({ min: 1900, max: 2030 })
     .withMessage('Ano inválido'),
   body('km_atual').optional().isInt({ min: 0 }).withMessage('Quilometragem inválida')
 ];

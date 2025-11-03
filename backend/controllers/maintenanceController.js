@@ -2,7 +2,10 @@ const { Maintenance, Vehicle, User } = require('../models');
 
 exports.getMaintenances = async (req, res, next) => {
   try {
+    const whereClause = req.user.perfil === 'Motorista' ? { responsavel_id: req.user.id } : {};
+    
     const maintenances = await Maintenance.findAll({
+      where: whereClause,
       attributes: ['id', 'veiculo_id', 'responsavel_id', 'tipo', 'data_programada', 'km_manutencao', 'descricao', 'gravidade', 'status', 'em_andamento', 'createdAt', 'updatedAt'],
       include: [
         { model: Vehicle, as: 'veiculo', attributes: ['id', 'placa', 'modelo'] },
@@ -18,7 +21,10 @@ exports.getMaintenances = async (req, res, next) => {
 
 exports.getMaintenance = async (req, res, next) => {
   try {
-    const maintenance = await Maintenance.findByPk(req.params.id, {
+    const whereClause = req.user.perfil === 'Motorista' ? { id: req.params.id, responsavel_id: req.user.id } : { id: req.params.id };
+    
+    const maintenance = await Maintenance.findOne({
+      where: whereClause,
       include: [
         { model: Vehicle, as: 'veiculo' },
         { model: User, as: 'responsavel' }

@@ -33,7 +33,7 @@ exports.loginValidation = [
 
 // Validações para veículo
 exports.vehicleValidation = [
-  body('tipo').isIn(['Caminhão', 'Carreta', 'Van', 'Utilitário'])
+  body('tipo').isIn(['Truck', 'Cavalo', 'Carreta', 'Veiculos Leves'])
     .withMessage('Tipo de veículo inválido'),
   body('frota').trim().notEmpty().withMessage('Número da frota é obrigatório')
     .matches(/^S-\d+$/).withMessage('Formato de frota inválido (S-XXX)'),

@@ -11,10 +11,11 @@ const {
 } = require('../controllers/maintenanceController');
 const { protect, authorize } = require('../middleware/auth');
 const { maintenanceValidation, validate } = require('../middleware/validators');
+const upload = require('../middleware/upload');
 
 router.route('/')
   .get(protect, getMaintenances)
-  .post(protect, maintenanceValidation, validate, createMaintenance);
+  .post(protect, createMaintenance);
 
 router.get('/urgent', protect, getUrgentMaintenances);
 

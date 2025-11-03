@@ -120,8 +120,12 @@ export const maintenancesAPI = {
         api.get(`/maintenances/vehicle/${vehicleId}`),
     
     // Criar nova manutenção
-    create: (dados) => 
-        api.post('/maintenances', dados),
+    create: (dados) => {
+        if (dados instanceof FormData) {
+            return api.post('/maintenances', dados);
+        }
+        return api.post('/maintenances', dados);
+    },
     
     // Atualizar manutenção completa
     update: (id, dados) => 

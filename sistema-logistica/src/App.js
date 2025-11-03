@@ -362,8 +362,18 @@ const SistemaLogistica = () => {
       } catch (err) {
         console.error('Erro completo:', err);
         console.error('Response:', err.response);
-        const errorInfo = handleAPIError(err);
-        alert(errorInfo.message || 'Erro ao processar requisição');
+        console.error('Response data:', err.response?.data);
+        
+        let errorMessage = 'Erro ao processar requisição';
+        if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response?.data?.errors) {
+          errorMessage = err.response.data.errors.map(e => e.msg).join(', ');
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        
+        alert(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -374,10 +384,10 @@ const SistemaLogistica = () => {
         <div className="form-group">
           <label className="label">Tipo</label>
           <select name="tipo" required className="input" defaultValue={editando.dados?.tipo}>
-            <option value="Caminhão">Caminhão</option>
+            <option value="Truck">Truck</option>
+            <option value="Cavalo">Cavalo</option>
             <option value="Carreta">Carreta</option>
-            <option value="Van">Van</option>
-            <option value="Utilitário">Utilitário</option>
+            <option value="Veiculos Leves">Veiculos Leves</option>
           </select>
         </div>
         <div className="form-group">
@@ -500,7 +510,7 @@ const SistemaLogistica = () => {
 
         await API.maintenances.create(data);
         await loadMaintenances();
-        await loadVehicles(); // Atualizar status do veículo
+        await loadVehicles();
         setShowModal(null);
         alert('Manutenção registrada com sucesso!');
 
@@ -518,7 +528,7 @@ const SistemaLogistica = () => {
           <label className="label">Veículo</label>
           <select name="veiculo" required className="input">
             {veiculos.filter(v => v.ativo).map(v => (
-              <option key={v.id} value={v.id}>{v.placa} - {v.modelo}</option>
+              <option key={v.id} value={v.id}>{v.placa} - {v.frota}</option>
             ))}
           </select>
         </div>
