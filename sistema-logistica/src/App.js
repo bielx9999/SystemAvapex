@@ -811,7 +811,6 @@ const SistemaLogistica = () => {
     <div className="content">
       <h2 className="page-title">Dashboard</h2>
 
-      
       <div className="stats-grid">
         <div className="stat-card border-yellow">
           <Truck size={32} color="#FFCC29" />
@@ -838,54 +837,60 @@ const SistemaLogistica = () => {
         </div>
       </div>
 
-      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
-        <div className="card">
-          <h3 className="card-title flex items-center" style={{marginBottom: '20px'}}>
-            <Clock size={20} className="mr-2" />
-            Manutenções Recentes
-          </h3>
-          <div className="list">
-            {manutencoes.filter(m => m.status !== 'Concluída').slice(0, 3).map(m => {
-              const badgeClass = m.gravidade === 'Crítica' ? 'badge-critical' :
-                                 m.gravidade === 'Alta' ? 'badge-high' :
-                                 m.gravidade === 'Média' ? 'badge-medium' : 'badge-low';
-              return (
-                <div key={m.id} className="list-item">
-                  <div className="flex-1">
-                    <p className="list-item-title">{m.veiculo?.placa} - {m.tipo}</p>
-                    <p className="list-item-text">{m.descricao}</p>
+      <div className="dashboard-cards">
+        <div className="dashboard-card">
+          <div className="card-header">
+            <Clock size={24} color="#FF6B6B" />
+            <h3 className="card-title">Manutenções Recentes</h3>
+          </div>
+          <div className="card-body">
+            <div className="maintenance-list">
+              {manutencoes.filter(m => m.status !== 'Concluída').slice(0, 5).map(m => (
+                <div key={m.id} className="maintenance-item">
+                  <div className="maintenance-info">
+                    <span className="maintenance-vehicle">{m.veiculo?.placa}</span>
+                    <span className="maintenance-type">{m.tipo}</span>
+                    <span className="maintenance-date">{new Date(m.data_programada).toLocaleDateString('pt-BR')}</span>
                   </div>
-                  <span className={`badge ${badgeClass}`}>
+                  <span className={`severity-badge severity-${m.gravidade?.toLowerCase()}`}>
                     {m.gravidade}
                   </span>
                 </div>
-              );
-            })}
+              ))}
+              {manutencoes.filter(m => m.status !== 'Concluída').length === 0 && (
+                <div className="empty-state">
+                  <p>Nenhuma manutenção pendente</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="card">
-          <h3 className="card-title flex items-center" style={{marginBottom: '20px'}}>
-            <FileText size={20} className="mr-2" />
-            Documentos Anexados
-          </h3>
-          <div className="list">
-            {ctes.filter(c => c.status !== 'Concluído').slice(0, 3).map(c => (
-              <div key={c.id} className="list-item">
-                <div className="flex-1">
-                  <p className="list-item-title">{c.numero}</p>
-                  <p className="list-item-text">
-                    Documento: {c.arquivo_nome || 'Sem arquivo'}
-                  </p>
-                  <p className="list-item-text" style={{fontSize: '12px', color: '#6B7280'}}>
-                    {new Date(c.createdAt || c.data_emissao).toLocaleDateString('pt-BR')} - {c.arquivo_nome}
-                  </p>
+        <div className="dashboard-card">
+          <div className="card-header">
+            <FileText size={24} color="#22C55E" />
+            <h3 className="card-title">Documentos Anexados</h3>
+          </div>
+          <div className="card-body">
+            <div className="documents-list">
+              {ctes.filter(c => c.status !== 'Concluído').slice(0, 5).map(c => (
+                <div key={c.id} className="document-item">
+                  <div className="document-info">
+                    <span className="document-number">{c.numero}</span>
+                    <span className="document-date">{new Date(c.data_emissao).toLocaleDateString('pt-BR')}</span>
+                    <span className="document-file">{c.arquivo_nome}</span>
+                  </div>
+                  <span className="status-badge status-active">
+                    Ativo
+                  </span>
                 </div>
-                <span className={`badge ${c.status === 'Concluído' ? 'badge-completed' : 'badge-pending'}`}>
-                  {c.status}
-                </span>
-              </div>
-            ))}
+              ))}
+              {ctes.filter(c => c.status !== 'Concluído').length === 0 && (
+                <div className="empty-state">
+                  <p>Nenhum documento ativo</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -1040,7 +1045,7 @@ const SistemaLogistica = () => {
         </div>
         
         {['Assistente', 'Gerente'].includes(currentUser.perfil) && (
-          <div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}>
+          <div className="sub-tabs" style={{marginBottom: '20px'}}>
             <button 
               onClick={() => setSubTab({...subTab, manutencoes: 'pendentes'})} 
               className={subTab.manutencoes === 'pendentes' ? 'nav-button-active' : 'nav-button'}
@@ -1213,7 +1218,7 @@ const SistemaLogistica = () => {
         </div>
         
         {['Assistente', 'Gerente'].includes(currentUser.perfil) && (
-          <div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}>
+          <div className="sub-tabs" style={{marginBottom: '20px'}}>
             <button 
               onClick={() => setSubTab({...subTab, ctes: 'ativos'})} 
               className={subTab.ctes === 'ativos' ? 'nav-button-active' : 'nav-button'}
@@ -1315,8 +1320,8 @@ const SistemaLogistica = () => {
       <header className="header">
         <div className="header-content">
           <div className="header-left">
-            <div className="header-logo">
-              <img src="/logoapp.png" alt="Logo" style={{height: '40px', width: 'auto'}} />
+            <div className="header-logo" style={{display: 'flex', alignItems: 'center'}}>
+              <img src="logoblack-removebg-preview.png" alt="Logo" style={{height: '35px', width: 'auto', display: 'block'}} />
             </div>
             <div>
               <h1 className="header-title">Avapex System</h1>
