@@ -1,4 +1,5 @@
 const { Cte, Vehicle, User } = require('../models');
+const { createMensagem } = require('./mensagemController');
 
 exports.getCtes = async (req, res, next) => {
   try {
@@ -44,6 +45,21 @@ exports.createCte = async (req, res, next) => {
       motorista_id: req.user.id
     });
     
+    // Enviar mensagem para Gerentes e Assistentes
+    const usuarios = await User.findAll({
+      where: { perfil: ['Gerente', 'Assistente'], ativo: true },
+      attributes: ['id']
+    });
+    
+    if (usuarios.length > 0) {
+      await createMensagem(
+        'Novo CT-e Anexado',
+        `CT-e ${cte.numero} foi anexado ao sistema por ${req.user.nome}.`,
+        'cte',
+        usuarios.map(u => u.id)
+      );
+    }
+    
     res.status(201).json({ 
       success: true, 
       message: 'CT-e cadastrado', 
@@ -59,7 +75,9 @@ exports.createCte = async (req, res, next) => {
 
 exports.updateCte = async (req, res, next) => {
   try {
-    const cte = await Cte.findByPk(req.params.id);
+    const cte = await Cte.findByPk(req.params.id, {
+      include: [{ model: User, as: 'motorista' }]
+    });
     if (!cte) {
       return res.status(404).json({ success: false, message: 'CT-e não encontrado' });
     }
@@ -67,6 +85,17 @@ exports.updateCte = async (req, res, next) => {
       req.body.arquivo_nome = req.file.originalname;
       req.body.arquivo_path = req.file.path;
     }
+    
+    // Se status mudou para Concluído, enviar mensagem para o motorista
+    if (req.body.status === 'Concluído' && cte.status !== 'Concluído') {
+      await createMensagem(
+        'CT-e Baixado',
+        `O CT-e ${cte.numero} foi marcado como baixado/concluído.`,
+        'cte_baixado',
+        [cte.motorista_id]
+      );
+    }
+    
     await cte.update(req.body);
     res.status(200).json({ success: true, message: 'CT-e atualizado', data: cte });
   } catch (error) {

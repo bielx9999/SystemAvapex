@@ -261,6 +261,17 @@ export const downloadFile = async (id, filename) => {
 // Função para verificar saúde da API
 export const checkHealth = () => api.get('/health', { baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000' });
 
+// ===================== MENSAGENS =====================
+export const mensagensAPI = {
+    // Listar mensagens do usuário
+    getAll: () => 
+        api.get('/mensagens'),
+    
+    // Marcar mensagem como lida
+    markAsRead: (id) => 
+        api.put(`/mensagens/${id}/read`)
+};
+
 // Exportar APIs organizadas
 export const API = {
     auth: authAPI,
@@ -269,7 +280,8 @@ export const API = {
     maintenances: maintenancesAPI,
     maintenanceHistory: maintenanceHistoryAPI,
     ctes: ctesAPI,
-    dashboard: dashboardAPI
+    dashboard: dashboardAPI,
+    mensagens: mensagensAPI
 };
 
 export default api;

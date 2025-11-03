@@ -15,6 +15,7 @@ const maintenanceRoutes = require('./routes/maintenance.routes');
 const maintenanceHistoryRoutes = require('./routes/maintenanceHistory');
 const cteRoutes = require('./routes/ctes.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
+const mensagemRoutes = require('./routes/mensagem.routes');
 
 // Middleware de erro
 const errorHandler = require('./middleware/errorHandler');
@@ -80,6 +81,7 @@ app.use('/api/maintenances', maintenanceRoutes);
 app.use('/api/maintenance-history', maintenanceHistoryRoutes);
 app.use('/api/ctes', cteRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/mensagens', mensagemRoutes);
 
 // Rota 404
 app.use('*', (req, res) => {

@@ -1,4 +1,5 @@
-const { Vehicle } = require('../models');
+const { Vehicle, User } = require('../models');
+const { createMensagem } = require('./mensagemController');
 
 exports.getVehicles = async (req, res, next) => {
   try {
@@ -23,26 +24,28 @@ exports.getVehicle = async (req, res, next) => {
 
 exports.createVehicle = async (req, res, next) => {
   try {
-    console.log('=== CRIANDO VEÍCULO ===');
-    console.log('Headers:', req.headers);
-    console.log('Body completo:', JSON.stringify(req.body, null, 2));
-    console.log('User:', req.user?.nome);
-    
     const vehicle = await Vehicle.create(req.body);
-    console.log('Veículo criado com sucesso:', vehicle.toJSON());
+    
+    // Enviar mensagem para Gerentes e Assistentes
+    const usuarios = await User.findAll({
+      where: { perfil: ['Gerente', 'Assistente'], ativo: true },
+      attributes: ['id']
+    });
+    
+    if (usuarios.length > 0) {
+      await createMensagem(
+        'Novo Veículo Cadastrado',
+        `Veículo ${vehicle.placa} (${vehicle.frota}) foi cadastrado no sistema.`,
+        'veiculo',
+        usuarios.map(u => u.id)
+      );
+    }
     
     res.status(201).json({ success: true, message: 'Veículo cadastrado', data: vehicle });
   } catch (error) {
-    console.error('=== ERRO AO CRIAR VEÍCULO ===');
-    console.error('Tipo do erro:', error.constructor.name);
-    console.error('Mensagem:', error.message);
-    console.error('Stack:', error.stack);
-    
     res.status(400).json({ 
       success: false, 
-      message: error.message || 'Erro ao criar veículo',
-      error: error.name,
-      details: error.errors || null
+      message: error.message || 'Erro ao criar veículo'
     });
   }
 };

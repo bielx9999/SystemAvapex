@@ -60,6 +60,15 @@ const MaintenanceHistory = sequelize.define('MaintenanceHistory', {
   observacoes: DataTypes.TEXT
 });
 
+// Modelo de Mensagens
+const Mensagem = sequelize.define('Mensagem', {
+  usuario_id: DataTypes.INTEGER,
+  titulo: DataTypes.STRING,
+  mensagem: DataTypes.TEXT,
+  tipo: DataTypes.STRING,
+  lida: { type: DataTypes.BOOLEAN, defaultValue: false }
+});
+
 // Relacionamentos
 Vehicle.hasMany(Maintenance, { foreignKey: 'veiculo_id', as: 'manutencoes' });
 Maintenance.belongsTo(Vehicle, { foreignKey: 'veiculo_id', as: 'veiculo' });
@@ -80,4 +89,4 @@ User.prototype.comparePassword = async function (senhaDigitada) {
   return bcrypt.compare(senhaDigitada, this.senha);
 };
 
-module.exports = { sequelize, User, Vehicle, Maintenance, Cte, MaintenanceHistory };
+module.exports = { sequelize, User, Vehicle, Maintenance, Cte, MaintenanceHistory, Mensagem };

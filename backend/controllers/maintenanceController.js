@@ -1,4 +1,5 @@
 const { Maintenance, Vehicle, User } = require('../models');
+const { createMensagem } = require('./mensagemController');
 
 exports.getMaintenances = async (req, res, next) => {
   try {
@@ -51,6 +52,22 @@ exports.createMaintenance = async (req, res, next) => {
         { model: User, as: 'responsavel' }
       ]
     });
+    
+    // Enviar mensagem para Gerentes e Assistentes
+    const usuarios = await User.findAll({
+      where: { perfil: ['Gerente', 'Assistente'], ativo: true },
+      attributes: ['id']
+    });
+    
+    if (usuarios.length > 0) {
+      await createMensagem(
+        'Nova Manutenção Registrada',
+        `Manutenção ${data.tipo} registrada para o veículo ${data.veiculo.placa} com gravidade ${data.gravidade}.`,
+        'manutencao',
+        usuarios.map(u => u.id)
+      );
+    }
+    
     res.status(201).json({ success: true, message: 'Manutenção registrada', data });
   } catch (error) {
     next(error);
@@ -91,7 +108,9 @@ exports.getUrgentMaintenances = async (req, res, next) => {
 exports.updateStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
-    const maintenance = await Maintenance.findByPk(req.params.id);
+    const maintenance = await Maintenance.findByPk(req.params.id, {
+      include: [{ model: Vehicle, as: 'veiculo' }, { model: User, as: 'responsavel' }]
+    });
     if (!maintenance) {
       return res.status(404).json({ success: false, message: 'Manutenção não encontrada' });
     }
@@ -99,6 +118,14 @@ exports.updateStatus = async (req, res, next) => {
     const updateData = { status };
     if (status === 'Concluída') {
       updateData.em_andamento = false;
+      
+      // Enviar mensagem para o motorista responsável
+      await createMensagem(
+        'Manutenção Concluída',
+        `A manutenção ${maintenance.tipo} do veículo ${maintenance.veiculo.placa} foi concluída.`,
+        'manutencao_concluida',
+        [maintenance.responsavel_id]
+      );
     }
     
     await maintenance.update(updateData);

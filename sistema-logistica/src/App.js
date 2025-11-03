@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, FileText, Wrench, Users, Plus, LogOut, AlertTriangle, Clock } from 'lucide-react';
+import { Truck, FileText, Wrench, Users, Plus, LogOut, AlertTriangle, Clock, Bell } from 'lucide-react';
 import { API, handleAPIError } from './services/api';
 import testConnection from './testConnection';
 import './App.css';
@@ -23,6 +23,8 @@ const SistemaLogistica = () => {
   const [editando, setEditando] = useState({ tipo: null, id: null, dados: null });
   const [historicoManutencao, setHistoricoManutencao] = useState([]);
   const [manutencaoSelecionada, setManutencaoSelecionada] = useState(null);
+  const [mensagens, setMensagens] = useState([]);
+  const [showMensagens, setShowMensagens] = useState(false);
 
   // Carregar dados ao fazer login
   useEffect(() => {
@@ -42,7 +44,8 @@ const SistemaLogistica = () => {
         loadDrivers(),
         loadMaintenances(),
         loadCtes(),
-        loadDashboardStats()
+        loadDashboardStats(),
+        loadMensagens()
       ]);
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
@@ -104,6 +107,26 @@ const SistemaLogistica = () => {
     } catch (err) {
       console.error('Erro ao carregar estatísticas:', err);
       // Não mostrar erro para estatísticas, pois não é crítico
+    }
+  };
+
+  // Carregar mensagens
+  const loadMensagens = async () => {
+    try {
+      const response = await API.mensagens.getAll();
+      setMensagens(response.data.data || []);
+    } catch (err) {
+      console.error('Erro ao carregar mensagens:', err);
+    }
+  };
+
+  // Marcar mensagem como lida
+  const marcarMensagemLida = async (id) => {
+    try {
+      await API.mensagens.markAsRead(id);
+      setMensagens(prev => prev.map(m => m.id === id ? {...m, lida: true} : m));
+    } catch (err) {
+      console.error('Erro ao marcar mensagem como lida:', err);
     }
   };
 
@@ -782,6 +805,60 @@ const SistemaLogistica = () => {
     </div>
   );
 
+  const ModalMensagens = () => (
+    <div className="modal-overlay">
+      <div className="modal">
+        <div className="modal-header">
+          <h3 className="modal-title">Mensagens</h3>
+          <button onClick={() => setShowMensagens(false)} className="close-button">×</button>
+        </div>
+        <div className="form">
+          {mensagens.length === 0 ? (
+            <p style={{color: '#9ca3af', textAlign: 'center', padding: '20px'}}>Nenhuma mensagem</p>
+          ) : (
+            <div style={{maxHeight: '400px', overflowY: 'auto'}}>
+              {mensagens.map(msg => (
+                <div key={msg.id} style={{
+                  padding: '12px',
+                  marginBottom: '8px',
+                  backgroundColor: msg.lida ? '#1a2332' : '#2a3542',
+                  border: `1px solid ${msg.lida ? '#4d4637' : '#FFCC29'}`,
+                  borderRadius: '8px'
+                }}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+                    <div style={{flex: 1}}>
+                      <h4 style={{color: '#FFCC29', margin: '0 0 4px 0', fontSize: '14px'}}>{msg.titulo}</h4>
+                      <p style={{color: '#d1d5db', margin: '0 0 8px 0', fontSize: '13px'}}>{msg.mensagem}</p>
+                      <span style={{color: '#9ca3af', fontSize: '11px'}}>
+                        {new Date(msg.createdAt).toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                    {!msg.lida && (
+                      <button 
+                        onClick={() => marcarMensagemLida(msg.id)}
+                        style={{
+                          backgroundColor: '#FFCC29',
+                          color: '#111822',
+                          border: 'none',
+                          borderRadius: '4px',
+                          padding: '4px 8px',
+                          fontSize: '10px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Marcar como lida
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   if (!currentUser) {
     return (
       <div className="login-container">
@@ -1338,10 +1415,33 @@ const SistemaLogistica = () => {
               <p className="header-subtitle">{currentUser.nome} · {currentUser.matricula}</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="button-logout">
-            <LogOut size={18} className="mr-2" />
-            Sair
-          </button>
+          <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+            <button onClick={() => setShowMensagens(true)} className="button-logout" style={{position: 'relative'}}>
+              <Bell size={18} />
+              {mensagens.filter(m => !m.lida).length > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-5px',
+                  right: '-5px',
+                  backgroundColor: '#EF4444',
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: '18px',
+                  height: '18px',
+                  fontSize: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {mensagens.filter(m => !m.lida).length}
+                </span>
+              )}
+            </button>
+            <button onClick={handleLogout} className="button-logout">
+              <LogOut size={18} className="mr-2" />
+              Sair
+            </button>
+          </div>
         </div>
       </header>
 
@@ -1414,6 +1514,8 @@ const SistemaLogistica = () => {
           <FormEnviarManutencao />
         </Modal>
       )}
+
+      {showMensagens && <ModalMensagens />}
     </div>
   );
 };
