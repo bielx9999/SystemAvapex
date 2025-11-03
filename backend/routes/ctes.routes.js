@@ -18,7 +18,7 @@ router.post('/', protect, upload.single('arquivo'), createCte);
 router.route('/:id')
   .get(protect, getCte)
   .put(protect, upload.single('arquivo'), updateCte)
-  .delete(protect, authorize('Gerente'), deleteCte);
+  .delete(protect, authorize('Gerente', 'Assistente'), deleteCte);
 
 router.get('/:id/download', protect, downloadCte);
 

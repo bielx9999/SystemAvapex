@@ -205,11 +205,16 @@ const SistemaLogistica = () => {
   const excluirManutencao = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir esta manutenção?')) {
       try {
-        await API.maintenances.delete(id);
+        console.log('Tentando excluir manutenção com ID:', id);
+        const response = await API.maintenances.delete(id);
+        console.log('Resposta da exclusão manutenção:', response);
         await loadMaintenances();
         alert('Manutenção excluída com sucesso!');
       } catch (err) {
-        alert('Erro ao excluir manutenção');
+        console.error('Erro completo ao excluir manutenção:', err);
+        console.error('Response do erro:', err.response);
+        const errorInfo = handleAPIError(err);
+        alert('Erro ao excluir manutenção: ' + errorInfo.message);
       }
     }
   };
@@ -246,11 +251,16 @@ const SistemaLogistica = () => {
   const excluirCte = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este CT-e?')) {
       try {
-        await API.ctes.delete(id);
+        console.log('Tentando excluir CT-e com ID:', id);
+        const response = await API.ctes.delete(id);
+        console.log('Resposta da exclusão CT-e:', response);
         await loadCtes();
         alert('CT-e excluído com sucesso!');
       } catch (err) {
-        alert('Erro ao excluir CT-e');
+        console.error('Erro completo ao excluir CT-e:', err);
+        console.error('Response do erro:', err.response);
+        const errorInfo = handleAPIError(err);
+        alert('Erro ao excluir CT-e: ' + errorInfo.message);
       }
     }
   };
@@ -259,11 +269,16 @@ const SistemaLogistica = () => {
   const excluirVeiculo = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este veículo?')) {
       try {
-        await API.vehicles.delete(id);
+        console.log('Tentando excluir veículo com ID:', id);
+        const response = await API.vehicles.delete(id);
+        console.log('Resposta da exclusão veículo:', response);
         await loadVehicles();
         alert('Veículo excluído com sucesso!');
       } catch (err) {
-        alert('Erro ao excluir veículo');
+        console.error('Erro completo ao excluir veículo:', err);
+        console.error('Response do erro:', err.response);
+        const errorInfo = handleAPIError(err);
+        alert('Erro ao excluir veículo: ' + errorInfo.message);
       }
     }
   };

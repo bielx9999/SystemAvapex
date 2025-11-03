@@ -21,7 +21,7 @@ router.get('/urgent', protect, getUrgentMaintenances);
 router.route('/:id')
   .get(protect, getMaintenance)
   .put(protect, updateMaintenance)
-  .delete(protect, authorize('Gerente'), deleteMaintenance);
+  .delete(protect, authorize('Gerente', 'Assistente'), deleteMaintenance);
 
 router.put('/:id/status', protect, updateStatus);
 

@@ -18,7 +18,7 @@ router.route('/')
 router.route('/:id')
   .get(protect, getVehicle)
   .put(protect, authorize('Gerente', 'Assistente'), updateVehicle)
-  .delete(protect, authorize('Gerente'), deleteVehicle);
+  .delete(protect, authorize('Gerente', 'Assistente'), deleteVehicle);
 
 router.put('/:id/km', protect, updateKm);
 
