@@ -5,7 +5,7 @@ const sequelize = require('../config/database');
 // Modelo de Usuário
 const User = sequelize.define('User', {
   nome: DataTypes.STRING,
-  matricula: { type: DataTypes.STRING, unique: true },
+  matricula: DataTypes.STRING,
   senha: DataTypes.STRING,
   perfil: DataTypes.STRING,
   telefone: DataTypes.STRING,

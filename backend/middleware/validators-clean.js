@@ -4,9 +4,10 @@ const { body, validationResult } = require('express-validator');
 exports.validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('Erros de validação:', errors.array());
     return res.status(400).json({
       success: false,
-      message: 'Erro de validação',
+      message: 'Erro de validação: ' + errors.array().map(e => e.msg).join(', '),
       errors: errors.array()
     });
   }
@@ -34,14 +35,18 @@ exports.loginValidation = [
 
 // Validações para veículo
 exports.vehicleValidation = [
-  body('tipo').isIn(['Truck', 'Cavalo', 'Carreta', 'Veiculos Leves'])
+  body('tipo').trim().notEmpty().withMessage('Tipo é obrigatório')
+    .isIn(['Truck', 'Cavalo', 'Carreta', 'Veiculos Leves'])
     .withMessage('Tipo de veículo inválido'),
-  body('frota').trim().notEmpty().withMessage('Número da frota é obrigatório'),
-  body('placa').trim().notEmpty().withMessage('Placa é obrigatória'),
-  body('modelo').trim().notEmpty().withMessage('Modelo é obrigatório'),
+  body('frota').trim().notEmpty().withMessage('Número da frota é obrigatório')
+    .isLength({ min: 1, max: 20 }).withMessage('Número da frota deve ter entre 1 e 20 caracteres'),
+  body('placa').trim().notEmpty().withMessage('Placa é obrigatória')
+    .isLength({ min: 7, max: 8 }).withMessage('Placa deve ter formato válido'),
+  body('modelo').trim().notEmpty().withMessage('Modelo é obrigatório')
+    .isLength({ min: 1, max: 100 }).withMessage('Modelo deve ter entre 1 e 100 caracteres'),
   body('ano').isInt({ min: 1900, max: 2030 })
-    .withMessage('Ano inválido'),
-  body('km_atual').optional().isInt({ min: 0 }).withMessage('Quilometragem inválida')
+    .withMessage('Ano deve estar entre 1900 e 2030'),
+  body('km_atual').optional().isInt({ min: 0 }).withMessage('Quilometragem deve ser um número positivo')
 ];
 
 // Validações para manutenção

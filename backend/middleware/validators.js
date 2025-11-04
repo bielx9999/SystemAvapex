@@ -22,7 +22,7 @@ exports.registerValidation = [
     .isLength({ min: 3 }).withMessage('Senha deve ter no mínimo 3 caracteres'),
   body('perfil').isIn(['Motorista', 'Assistente', 'Gerente'])
     .withMessage('Perfil inválido'),
-  body('telefone').optional().isMobilePhone('pt-BR').withMessage('Telefone inválido')
+  body('telefone').optional().isLength({ min: 8 }).withMessage('Telefone deve ter no mínimo 8 caracteres')
 ];
 
 // Validações para login
@@ -33,10 +33,8 @@ exports.loginValidation = [
 
 // Validações para veículo
 exports.vehicleValidation = [
-  body('tipo').isIn(['Truck', 'Cavalo', 'Carreta', 'Veiculos Leves'])
-    .withMessage('Tipo de veículo inválido'),
-  body('frota').trim().notEmpty().withMessage('Número da frota é obrigatório')
-    .matches(/^S-\d+$/).withMessage('Formato de frota inválido (S-XXX)'),
+  body('tipo').trim().notEmpty().withMessage('Tipo é obrigatório'),
+  body('frota').trim().notEmpty().withMessage('Número da frota é obrigatório'),
   body('placa').trim().notEmpty().withMessage('Placa é obrigatória'),
   body('modelo').trim().notEmpty().withMessage('Modelo é obrigatório'),
   body('ano').isInt({ min: 1900, max: new Date().getFullYear() + 1 })

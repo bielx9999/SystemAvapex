@@ -203,9 +203,13 @@ export const maintenanceHistoryAPI = {
 export const handleAPIError = (error) => {
     if (error.response) {
         // Erro retornado pelo servidor
+        const errorMessage = error.response.data.message || 
+                            error.response.data.error || 
+                            (error.response.data.errors ? error.response.data.errors.map(e => e.msg || e.message).join(', ') : '') ||
+                            'Erro ao processar requisição';
         return {
             success: false,
-            message: error.response.data.error || 'Erro ao processar requisição',
+            message: errorMessage,
             status: error.response.status
         };
     } else if (error.request) {

@@ -35,7 +35,7 @@ app.use(cors({
   origin: [
     process.env.FRONTEND_URL || 'http://localhost:3000', 
     'http://localhost:3000',
-    'http://192.168.2.60:3000'
+    'http://192.168.2.81:3000'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -127,8 +127,8 @@ const startServer = async () => {
       console.log(`🚀 Servidor rodando na porta ${PORT}`);
       console.log(`📍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🌐 URL Local: http://localhost:${PORT}`);
-      console.log(`🌐 URL Rede: http://192.168.2.60:${PORT}`);
-      console.log(`🏥 Health Check: http://192.168.2.60:${PORT}/health`);
+      console.log(`🌐 URL Rede: http://192.168.2.81:${PORT}`);
+      console.log(`🏥 Health Check: http://192.168.2.81:${PORT}/health`);
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     });
 

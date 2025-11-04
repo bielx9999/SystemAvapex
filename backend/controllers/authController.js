@@ -10,7 +10,7 @@ const generateToken = (id) => {
 exports.register = async (req, res, next) => {
   try {
     const { nome, matricula, senha, perfil, telefone } = req.body;
-    const userExists = await User.findOne({ where: { matricula } });
+    const userExists = await User.findOne({ where: { matricula, ativo: true } });
     if (userExists) {
       return res.status(400).json({
         success: false,

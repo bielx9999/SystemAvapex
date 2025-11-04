@@ -13,11 +13,11 @@ const { vehicleValidation, validate } = require('../middleware/validators-clean'
 
 router.route('/')
   .get(protect, getVehicles)
-  .post(protect, authorize('Gerente', 'Assistente'), createVehicle);
+  .post(protect, authorize('Gerente', 'Assistente'), vehicleValidation, validate, createVehicle);
 
 router.route('/:id')
   .get(protect, getVehicle)
-  .put(protect, authorize('Gerente', 'Assistente'), updateVehicle)
+  .put(protect, authorize('Gerente', 'Assistente'), vehicleValidation, validate, updateVehicle)
   .delete(protect, authorize('Gerente', 'Assistente'), deleteVehicle);
 
 router.put('/:id/km', protect, updateKm);

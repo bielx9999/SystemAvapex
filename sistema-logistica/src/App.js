@@ -67,7 +67,9 @@ const SistemaLogistica = () => {
   const loadDrivers = async () => {
     try {
       const response = await API.users.getAll();
-      const funcionarios = (response.data.data || []).filter(u => ['Motorista', 'Assistente', 'Gerente'].includes(u.perfil));
+      const funcionarios = (response.data.data || [])
+        .filter(u => ['Motorista', 'Assistente', 'Gerente'].includes(u.perfil))
+        .filter((user, index, array) => array.findIndex(u => u.id === user.id) === index); // Remove duplicatas
       setMotoristas(funcionarios);
     } catch (err) {
       console.error('Erro ao carregar funcionários:', err);
@@ -360,13 +362,29 @@ const SistemaLogistica = () => {
 
       try {
         const data = {
-          tipo: e.target.tipo.value,
-          frota: e.target.frota.value,
-          placa: e.target.placa.value,
-          modelo: e.target.modelo.value,
+          tipo: e.target.tipo.value.trim(),
+          frota: e.target.frota.value.trim(),
+          placa: e.target.placa.value.trim().toUpperCase(),
+          modelo: e.target.modelo.value.trim(),
           ano: parseInt(e.target.ano.value),
-          km_atual: parseInt(e.target.km.value)
+          km_atual: parseInt(e.target.km.value) || 0
         };
+        
+        // Validações básicas no frontend
+        if (!data.tipo || !data.frota || !data.placa || !data.modelo || !data.ano) {
+          alert('Todos os campos são obrigatórios');
+          return;
+        }
+        
+        if (data.ano < 1900 || data.ano > 2030) {
+          alert('Ano deve estar entre 1900 e 2030');
+          return;
+        }
+        
+        if (data.km_atual < 0) {
+          alert('Quilometragem não pode ser negativa');
+          return;
+        }
 
         console.log('Dados do veículo:', data);
 
@@ -388,10 +406,15 @@ const SistemaLogistica = () => {
         console.error('Response data:', err.response?.data);
         
         let errorMessage = 'Erro ao processar requisição';
+        
         if (err.response?.data?.message) {
           errorMessage = err.response.data.message;
-        } else if (err.response?.data?.errors) {
-          errorMessage = err.response.data.errors.map(e => e.msg).join(', ');
+        } else if (err.response?.data?.errors && Array.isArray(err.response.data.errors)) {
+          errorMessage = err.response.data.errors.map(e => e.msg || e.message || e).join(', ');
+        } else if (err.response?.status === 400) {
+          errorMessage = 'Dados inválidos. Verifique os campos preenchidos.';
+        } else if (err.response?.status === 409) {
+          errorMessage = 'Número da frota já existe. Use outro número.';
         } else if (err.message) {
           errorMessage = err.message;
         }
@@ -415,7 +438,7 @@ const SistemaLogistica = () => {
         </div>
         <div className="form-group">
           <label className="label">Número da Frota</label>
-          <input name="frota" required className="input" placeholder="S-001" pattern="S-\d+" defaultValue={editando.dados?.frota} />
+          <input name="frota" required className="input" placeholder="S-001" defaultValue={editando.dados?.frota} />
         </div>
         <div className="form-group">
           <label className="label">Placa</label>
@@ -474,8 +497,12 @@ const SistemaLogistica = () => {
         setEditando({ tipo: null, id: null, dados: null });
 
       } catch (err) {
+        console.error('Erro completo no cadastro de funcionário:', err);
+        console.error('Response:', err.response);
+        console.error('Response data:', err.response?.data);
+        
         const errorInfo = handleAPIError(err);
-        alert(errorInfo.message);
+        alert('Erro ao cadastrar funcionário: ' + errorInfo.message);
       } finally {
         setLoading(false);
       }
@@ -1046,7 +1073,7 @@ const SistemaLogistica = () => {
           <p className="page-subtitle">Cadastro de funcionários</p>
         </div>
         {['Gerente', 'Assistente'].includes(currentUser.perfil) && (
-          <button onClick={() => setShowModal('motorista')} className="button-primary">
+          <button onClick={() => { setEditando({ tipo: null, id: null, dados: null }); setShowModal('motorista'); }} className="button-primary">
             <Plus size={18} className="mr-2" />
             Novo Funcionário
           </button>
